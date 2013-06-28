@@ -1,6 +1,7 @@
 package org.rosettacode
 package pargolfp
 
+
 import CellularAutomaton.{ move, nextGeneration }
 import collection.parallel.ParSet
 

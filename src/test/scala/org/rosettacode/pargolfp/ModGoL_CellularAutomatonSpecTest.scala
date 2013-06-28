@@ -1,6 +1,7 @@
 package org.rosettacode
 package pargolfp
 
+
 import org.scalatest._
 import org.scalatest.junit.AssertionsForJUnit
 import collection.parallel.ParSet

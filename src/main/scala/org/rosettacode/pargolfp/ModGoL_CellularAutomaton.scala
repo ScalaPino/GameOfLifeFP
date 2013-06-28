@@ -1,6 +1,7 @@
 package org.rosettacode
 package pargolfp
 
+
 import language.{ implicitConversions, postfixOps }
 
 import collection.parallel.mutable.ParHashMap

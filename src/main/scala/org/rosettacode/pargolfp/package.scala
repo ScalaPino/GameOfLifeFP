@@ -1,5 +1,6 @@
 package org.rosettacode
 
+
 /**
  * Conway's Game of Life, a cellular automaton devised in 1970 by the
  * British mathematician John Horton Conway, is considered a zero-player game
