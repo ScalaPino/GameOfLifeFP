@@ -10,12 +10,10 @@ package org.rosettacode
  * It is the best-known example of a ''cellular automaton''.
  *
  * A Conway "board" has infinite dimensions -in fact, Conway's Game of Life is
- * Turing complete- so the algorithm below avoids using fixed-size structures
- * such as arrays. Instead, each generation is represented by a __set of the
- *  coordinates__ which are "alive".
+ * Turing complete- so the algorithm avoids using fixed-size structures
+ * such as arrays. Instead, each generation is represented by a __set of
+ * Cells__ which are "alive".
  *  
- *  
- *
  * This solution is programmed with best practice and pragmatics
  * of functional programming in Scala with its idiomatics.
  */
