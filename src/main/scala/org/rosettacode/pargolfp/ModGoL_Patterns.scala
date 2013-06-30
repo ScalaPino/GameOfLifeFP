@@ -1,7 +1,6 @@
 package org.rosettacode
 package pargolfp
 
-
 import collection.parallel.ParSet
 import language.implicitConversions
 
@@ -170,7 +169,7 @@ object ConwayPatterns {
     (tupleCharCommaXCharPos, lineNumber) <- pattern.stripMargin.lines.map(_.zipWithIndex).zipWithIndex
     (char, xCharPos) <- tupleCharCommaXCharPos
     if char != ' '
-  } yield Cell(xCharPos, lineNumber)).toSet.par
+  } yield XYpos(xCharPos, lineNumber)).toSet.par
 
   // Move a set of coordinates to a point
   //  def moveTo(pattern: String, to: Cell) = (pattern: Iterator[Cell]) map (_ + to)

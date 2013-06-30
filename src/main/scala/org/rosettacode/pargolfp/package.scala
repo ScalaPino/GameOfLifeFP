@@ -1,6 +1,5 @@
 package org.rosettacode
 
-
 /**
  * Conway's Game of Life, a cellular automaton devised in 1970 by the
  * British mathematician John Horton Conway, is considered a zero-player game
@@ -10,10 +9,9 @@ package org.rosettacode
  * It is the best-known example of a ''cellular automaton''.
  *
  * A Conway "board" has infinite dimensions -in fact, Conway's Game of Life is
- * Turing complete- so the algorithm avoids using fixed-size structures
- * such as arrays. Instead, each generation is represented by a __set of
- * Cells__ which are "alive".
- *  
+ * Turing complete- so this solution avoids using fixed-size structures
+ * such as arrays. Instead, each generation is represented by a __set of the
+ * "alive" cells__ on a grid of XY positions.
  * This solution is programmed with best practice and pragmatics
  * of functional programming in Scala with its idiomatics.
  */

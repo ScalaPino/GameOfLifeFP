@@ -1,7 +1,6 @@
 package org.rosettacode
 package pargolfp
 
-
 import CellularAutomaton.{ move, nextGeneration }
 import collection.parallel.ParSet
 
@@ -37,37 +36,40 @@ object ModGoL_PatternsSpecTest {
   final val WINDOWSIZE = 4 // To check for stable populations, use a window this big  
 
   // Return an iterator for the generations of a starting pattern
-  def conwayIterator(first: ParSet[Cell]) = Iterator.iterate(first)(nextGeneration(_))
+  def conwayIterator(first: ParSet[XYpos]) = Iterator.iterate(first)(nextGeneration(_))
 
-  def countExpectedPeriode(first: ParSet[Cell],
+  def countExpectedPeriode(first: ParSet[XYpos],
     expectedPeriodeCount: Int,
     isSpaceship: Boolean) = {
     @tailrec
-    def inner(pop: ParSet[Cell], expectedPeriodeCountDown: Int): Boolean = {
-      if (expectedPeriodeCountDown <= 0) ((if (isSpaceship) move(pop, (0, 0)) else pop): ParSet[Cell]) == first
+    def inner(pop: ParSet[XYpos], expectedPeriodeCountDown: Int): Boolean = {
+      if (expectedPeriodeCountDown <= 0) ((if (isSpaceship) move(pop, (0, 0)) else pop): ParSet[XYpos]) == first
       else inner(nextGeneration(pop), expectedPeriodeCountDown - 1)
     }
     inner(first, expectedPeriodeCount)
   }
 
   /**
-   * For each pattern passed, apply a function which will measure some characteristic
-   * of the generations of that pattern, and assert it is equal to expected value.
+   * For each pattern passed, apply a function which will measure some
+   *  characteristic of the generations of that pattern, and assert it
+   *  is equal to expected value.
    */
-  def testHarness(patterns: String, test: (ParSet[Cell], Int) => Boolean, msg: String) =
+  def testHarness(patterns: String,
+    test: (ParSet[XYpos], Int) => Boolean,
+    msg: String) =
     assert(patternCollection.get(patterns).get forall {
       case (menuName, pattern, period) => test(move(pattern, (0, 0)), period)
     }, msg)
 
-  def testOscPeriode(first: ParSet[Cell], expectedPeriodeCount: Int) =
+  def testOscPeriode(first: ParSet[XYpos], expectedPeriodeCount: Int) =
     countExpectedPeriode(first, expectedPeriodeCount: Int, false)
 
-  def testSpaceshipPeriode(first: ParSet[Cell], expectedPeriodeCount: Int) =
+  def testSpaceshipPeriode(first: ParSet[XYpos], expectedPeriodeCount: Int) =
     countExpectedPeriode(first, expectedPeriodeCount: Int, true)
 
-  def isStableGeneration(first: ParSet[Cell], expectedPeriodeCount: Int) = {
+  def isStableGeneration(first: ParSet[XYpos], expectedPeriodeCount: Int) = {
     @tailrec
-    def inner(pop: ParSet[Cell], expectedPeriodeCountDown: Int): Boolean = {
+    def inner(pop: ParSet[XYpos], expectedPeriodeCountDown: Int): Boolean = {
       if (expectedPeriodeCountDown <= 1 || CellularAutomaton.isStablePopulation)
         CellularAutomaton.isStablePopulation
       else inner(nextGeneration(pop), expectedPeriodeCountDown - 1)
@@ -80,7 +82,7 @@ object ModGoL_PatternsSpecTest {
    * stabilizes. This test only checks a window of generations for
    * population size.
    */
-  def getUnstableGenerations(first: ParSet[Cell], expectedPeriodeCount: Int) = {
+  def getUnstableGenerations(first: ParSet[XYpos], expectedPeriodeCount: Int) = {
     (conwayIterator(first) take (expectedPeriodeCount + WINDOWSIZE) map (_.size) sliding WINDOWSIZE
       map (_.distinct.length) takeWhile (_ > 1) length) == expectedPeriodeCount
   } // def getUnstableGenerations
