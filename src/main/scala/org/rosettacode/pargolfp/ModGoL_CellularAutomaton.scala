@@ -185,45 +185,29 @@ object CellularAutomaton {
   /** Detects a stabilization of the number of living cells */
   def isStablePopulation = slidingAggregate.tail.forall(_ == slidingAggregate.head)
 
-  def minMaxYXpos(rect: (XYpos, XYpos)) = {
-    ((rect._1 min rect._2), (rect._1 min rect._2))
-  }
-
-  def extremeCellsAlive(population: CellsAlive) = {
-    if (population.isEmpty)
-      throw new UnsupportedOperationException("empty.CellsAlive")
-
-    var first = true
-    var acc: XYpos.Rect = 0.asInstanceOf[XYpos.Rect]
-    for (x <- population) {
-      if (first) {
-        acc = x extreme x
-        first = false
-      } else acc = x extreme x
-    }
-    acc
-  }
-
-  // An Ordering for coordinates which sorts by the X coordinate
-  private val xOrdering = Ordering.fromLessThan((_: XYpos).x < (_: XYpos).x)
-  // An Ordering for coordinates which sorts by the Y coordinate
-  private val yOrdering = Ordering.fromLessThan((_: XYpos).y < (_: XYpos).y)
-
   /**
    * Move the pattern without altering its disposition
    */
   def move(population: CellsAlive, center: XYpos): CellsAlive = {
-    def extremeCells: XYpos.Rect = {
-      (XYpos( //This generation's upper left corner Cell
-        population min xOrdering x, population max yOrdering y),
-        //This generation's lower right corner Cell
-        XYpos(population max xOrdering x, population min yOrdering y))
+
+    def extremeCellsAlive: XYpos.Rect = {
+      if (population.isEmpty)
+        throw new UnsupportedOperationException("empty.CellsAlive")
+      var first = true
+      var acc: XYpos.Rect = ((0, 0), (0, 0)) //0.asInstanceOf[XYpos.Rect]
+      for (x <- population) {
+        if (first) {
+          acc = x extreme x
+          first = false
+        } else acc = x extreme acc
+      }
+      acc
     }
 
-    val extremes = extremeCells
+    val extremes = extremeCellsAlive
     val offset = XYpos(
       extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,
-      extremes._2.y + (extremes._1.y - extremes._2.y) / 2 - center.y)
+      extremes._1.y + (extremes._2.y - extremes._1.y) / 2 - center.y)
     population map (_ - offset)
   }
 } // object CellularAutomaton
