@@ -38,7 +38,7 @@ class XYpos(val x: Int,
     dy <- XYpos.offsets
     if dx != 0 || dy != 0
   } yield XYpos.this + (dx, dy)
-  //
+
   /**
    * All stored neighbor positions of a cell expressed as a set of Cells.
    * It must be lazy -computed on demand- to postpone evaluation
@@ -52,16 +52,34 @@ class XYpos(val x: Int,
 
   // XYpos can be used as an offset
   private def +(dx: Int, dy: Int) = XYpos(x + dx, y + dy)
+
   /** Add a XYpos as an offset */
   def +(that: XYpos): XYpos = this + (that.x, that.y)
+
   /** Subtract a XYpos as an offset */
   def -(that: XYpos): XYpos = this + (-that.x, -that.y)
 
+  /**
+   * Get the maximal numbers of either coordinate.
+   * Resulting point is mostly distant of both points!
+   */
   def max(that: XYpos) = XYpos(this.x max that.x, this.y max that.y)
 
+  /**
+   * Get the minimal numbers of either coordinate.
+   * Resulting point is mostly distant of both points!
+   */
   def min(that: XYpos) = XYpos(this.x min that.x, this.y min that.y)
-  
-  def extreme(that: XYpos) = ((this min that),(this max that))
+
+  // Get a rectangle is describing with the extreme positions
+  /**
+   * Get a rectangular that envelopes both points with
+   *  a bottom-left and an upper-left hand coordinate.
+   */
+  def extreme(that: XYpos): XYpos.Rect = ((this min that), (this max that))
+
+  def extreme(that: XYpos.Rect): XYpos.Rect =
+    (((this min that._1) min that._2), (this max that._1) max that._2)
 
   /** Output the class textual */
   override def toString = (f"XYpos($x%d, $y%d)")
@@ -74,6 +92,7 @@ class XYpos(val x: Int,
  *
  */
 object XYpos {
+  type Rect = (XYpos, XYpos)
 
   var generation = Int.MinValue
 
@@ -167,12 +186,23 @@ object CellularAutomaton {
   def isStablePopulation = slidingAggregate.tail.forall(_ == slidingAggregate.head)
 
   def minMaxYXpos(rect: (XYpos, XYpos)) = {
-	  ((rect._1 min rect._2),(rect._1 min rect._2))
+    ((rect._1 min rect._2), (rect._1 min rect._2))
   }
 
-//  def extremeCellsAlive(population: CellsAlive) = {
-//    population.foldLeft(Tuple2(XYpos(0,1),XYpos(0,0)))( _ extreme _)
-//  }
+  def extremeCellsAlive(population: CellsAlive) = {
+    if (population.isEmpty)
+      throw new UnsupportedOperationException("empty.CellsAlive")
+
+    var first = true
+    var acc: XYpos.Rect = 0.asInstanceOf[XYpos.Rect]
+    for (x <- population) {
+      if (first) {
+        acc = x extreme x
+        first = false
+      } else acc = x extreme x
+    }
+    acc
+  }
 
   // An Ordering for coordinates which sorts by the X coordinate
   private val xOrdering = Ordering.fromLessThan((_: XYpos).x < (_: XYpos).x)
@@ -183,7 +213,7 @@ object CellularAutomaton {
    * Move the pattern without altering its disposition
    */
   def move(population: CellsAlive, center: XYpos): CellsAlive = {
-    def extremeCells: (XYpos, XYpos) = {
+    def extremeCells: XYpos.Rect = {
       (XYpos( //This generation's upper left corner Cell
         population min xOrdering x, population max yOrdering y),
         //This generation's lower right corner Cell
