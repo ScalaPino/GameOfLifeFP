@@ -5,6 +5,7 @@ import org.scalatest._
 import org.scalatest.junit.AssertionsForJUnit
 import collection.parallel.ParSet
 
+
 class M_GoL_CellularAutomatonSpecTest extends FunSpec with GivenWhenThen {
   val (x0, y0) = (3, 25)
   val (x1, y1) = (x0 + 1, y0)

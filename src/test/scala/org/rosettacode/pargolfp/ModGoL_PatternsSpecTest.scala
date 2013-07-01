@@ -7,6 +7,7 @@ import collection.parallel.ParSet
 import annotation.tailrec
 import language.postfixOps
 
+
 import org.rosettacode.pargolfp.ConwayPatterns._
 import org.scalatest.junit.AssertionsForJUnit
 import org.scalatest._
