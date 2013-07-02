@@ -24,7 +24,7 @@ import collection.parallel.ParSeq
 class XYpos(val x: Int,
   val y: Int,
   var timestamp: Int = XYpos.generation) {
-
+  import XYpos._
   /**
    * override def equals(other: Any):Boolean
    *  There is no need to override equals because the equal comparison is
@@ -33,11 +33,8 @@ class XYpos(val x: Int,
    *  This is guaranteed by the Cell's apply method.
    *  There is also no new hash function necessary.
    */
-  private lazy val mooreNeighborhoodPos = for {
-    dx <- XYpos.offsets
-    dy <- XYpos.offsets
-    if dx != 0 || dy != 0
-  } yield XYpos.this + (dx, dy)
+
+  private lazy val mooreNeighborhoodPos = mooreNeighborhood.map(p => this + p)
 
   /**
    * All stored neighbor positions of a cell expressed as a set of Cells.
@@ -97,6 +94,11 @@ object XYpos {
   var generation = Int.MinValue
 
   private def offsets = (-1 to 1) // For neighbor selection
+  private val mooreNeighborhood = for {
+    dx <- XYpos.offsets
+    dy <- XYpos.offsets
+    if dx != 0 || dy != 0
+  } yield (dx, dy)
 
   /**
    * The cache will check if the new Cell already exists.
@@ -117,7 +119,7 @@ object XYpos {
   def apply(x: Int, y: Int): XYpos = { cache(x, y) }
 
   /** A Tuple2[Int, Int] can be used as a XYpos through this implicit conversion.*/
-  implicit def cellFromTuple(t: (Int, Int)) = apply(t._1, t._2)
+  implicit def tupleToXYpos(t: (Int, Int)): XYpos = apply(t._1, t._2)
 } // object XYpos
 
 /////////////////////////////////////////////////////////////////////////////
@@ -134,7 +136,7 @@ object CellularAutomaton {
   private var slidingAggregate = ParSeq(0)
 
   /**
-   * The next generation is composed of babies from fecund
+   * The next generation is composed of newborns from fecund
    *  neighborhoods and adults on stable neighborhoods.
    */
   def nextGeneration0(population: CellsAlive,

@@ -7,7 +7,6 @@ import collection.parallel.ParSet
 import annotation.tailrec
 import language.postfixOps
 
-
 import org.rosettacode.pargolfp.ConwayPatterns._
 import org.scalatest.junit.AssertionsForJUnit
 import org.scalatest._
@@ -59,7 +58,7 @@ object ModGoL_PatternsSpecTest {
     test: (ParSet[XYpos], Int) => Boolean,
     msg: String) =
     assert(patternCollection.get(patterns).get forall {
-      case (menuName, pattern, period) => test(move(pattern, (0, 0)), period)
+      case (_, pattern, period) => test(move(pattern, (0, 0)), period)
     }, msg)
 
   def testOscPeriode(first: ParSet[XYpos], expectedPeriodeCount: Int) =
