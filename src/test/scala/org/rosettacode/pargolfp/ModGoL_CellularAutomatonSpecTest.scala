@@ -5,7 +5,6 @@ import org.scalatest._
 import org.scalatest.junit.AssertionsForJUnit
 import collection.parallel.ParSet
 
-
 class M_GoL_CellularAutomatonSpecTest extends FunSpec with GivenWhenThen {
   val (x0, y0) = (3, 25)
   val (x1, y1) = (x0 + 1, y0)
@@ -60,7 +59,7 @@ class M_GoL_CellularAutomatonSpecTest extends FunSpec with GivenWhenThen {
       And(f"Cache has ${XYpos.cache.size}%d cached cells")
       And("Reduce cache  the second deep")
       CellularAutomaton.flushCache(2)
-      expectResult(21) { XYpos.cache.size }
+      expectResult(29) { XYpos.cache.size }
       And("Reduce cache  the first level deep")
       CellularAutomaton.flushCache(1)
       expectResult(9) { XYpos.cache.size }

@@ -14,28 +14,26 @@ import collection.parallel.ParSeq
  *
  * @author		Frans W. van den Berg
  *
+ * @note		There is no need to override equals because the equal comparison is
+ *  default by object identity (address). This works great because
+ *  for each unique key x,y there is also an unique identity.
+ *  This is guaranteed by the Cell's apply method.
+ *  There is also no new hash function necessary.
+ *
  * @constructor	Create a new Thing instance from a Wotsit. Upon creating x,y
  * 				coordinates will be checked for uniqueness. See [[XYpos$]]
  *
  * @param		x x part of coordinate pair
  * @param		y y part of coordinate pair
  * @param		timestamp Params
+ *
  */
 class XYpos(val x: Int,
   val y: Int,
   var timestamp: Int = XYpos.generation) {
-  import XYpos._
-  /**
-   * override def equals(other: Any):Boolean
-   *  There is no need to override equals because the equal comparison is
-   *  default by object identity (address). This works great because
-   *  for each unique key x,y there is also an unique identity.
-   *  This is guaranteed by the Cell's apply method.
-   *  There is also no new hash function necessary.
-   */
+  import XYpos.{ generation, mooreNeighborhood, Rect }
 
   private lazy val mooreNeighborhoodPos = mooreNeighborhood.map(p => this + p)
-
   /**
    * All stored neighbor positions of a cell expressed as a set of Cells.
    * It must be lazy -computed on demand- to postpone evaluation
@@ -43,7 +41,7 @@ class XYpos(val x: Int,
    * Direct evaluation should cause a recursive problem.
    */
   def getMooreNeighborhood = {
-    timestamp = XYpos.generation // Update timestamp each time Cell is referred.
+    timestamp = generation // Update timestamp each time Cell is referred.
     mooreNeighborhoodPos
   }
 
@@ -60,22 +58,25 @@ class XYpos(val x: Int,
    * Get the maximal numbers of either coordinate.
    * Resulting point is mostly distant of both points!
    */
-  def max(that: XYpos) = XYpos(this.x max that.x, this.y max that.y)
+  private def max(that: XYpos) = XYpos(this.x max that.x, this.y max that.y)
 
   /**
    * Get the minimal numbers of either coordinate.
    * Resulting point is mostly distant of both points!
    */
-  def min(that: XYpos) = XYpos(this.x min that.x, this.y min that.y)
+  private def min(that: XYpos) = XYpos(this.x min that.x, this.y min that.y)
 
-  // Get a rectangle is describing with the extreme positions
   /**
-   * Get a rectangular that envelopes both points with
+   * Get a ''rectangular'' that envelopes both __points__ with
    *  a bottom-left and an upper-left hand coordinate.
    */
-  def extreme(that: XYpos): XYpos.Rect = ((this min that), (this max that))
+  def extreme(that: XYpos): Rect = ((this min that), (this max that))
 
-  def extreme(that: XYpos.Rect): XYpos.Rect =
+  /**
+   * Get a ''rectangular'' with a bottom-left and an upper-left hand
+   * coordinate that envelopes this point and a __rectangle__.
+   */
+  def extreme(that: Rect): Rect =
     (((this min that._1) min that._2), (this max that._1) max that._2)
 
   /** Output the class textual */
@@ -95,8 +96,8 @@ object XYpos {
 
   private def offsets = (-1 to 1) // For neighbor selection
   private val mooreNeighborhood = for {
-    dx <- XYpos.offsets
-    dy <- XYpos.offsets
+    dx <- offsets
+    dy <- offsets
     if dx != 0 || dy != 0
   } yield (dx, dy)
 
@@ -129,7 +130,7 @@ object XYpos {
  */
 object CellularAutomaton {
   import XYpos.generation
-  type CellsAlive = collection.parallel.ParSet[XYpos]
+   type CellsAlive = collection.parallel.ParSet[XYpos]
 
   // Some bookkeeping
   final val WINDOWSIZE = 4
@@ -195,8 +196,9 @@ object CellularAutomaton {
     def extremeCellsAlive: XYpos.Rect = {
       if (population.isEmpty)
         throw new UnsupportedOperationException("empty.CellsAlive")
+
       var first = true
-      var acc: XYpos.Rect = ((0, 0), (0, 0)) //0.asInstanceOf[XYpos.Rect]
+      var acc: XYpos.Rect = ((0, 0), (0, 0))
       for (x <- population) {
         if (first) {
           acc = x extreme x
