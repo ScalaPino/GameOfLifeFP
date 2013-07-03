@@ -130,7 +130,7 @@ object XYpos {
  */
 object CellularAutomaton {
   import XYpos.generation
-   type CellsAlive = collection.parallel.ParSet[XYpos]
+  type CellsAlive = collection.parallel.ParSet[XYpos]
 
   // Some bookkeeping
   final val WINDOWSIZE = 4
@@ -171,8 +171,9 @@ object CellularAutomaton {
     rulestringB: Set[Int] = Set(3)) = {
     val ret = nextGeneration0(population, rulestringS, rulestringB)
     // Registering aggregate data
-    slidingAggregate = (if (slidingAggregate.size >= WINDOWSIZE) ParSeq.empty[Int]
-    else ParSeq(slidingAggregate.head)) ++ slidingAggregate.tail ++ ParSeq(ret.size)
+    slidingAggregate =
+      (if (slidingAggregate.size >= WINDOWSIZE) ParSeq.empty[Int]
+      else ParSeq(slidingAggregate.head)) ++ slidingAggregate.tail ++ ParSeq(ret.size)
     ret
   }
 
@@ -186,17 +187,18 @@ object CellularAutomaton {
   }
 
   /** Detects a stabilization of the number of living cells */
-  def isStablePopulation = slidingAggregate.tail.forall(_ == slidingAggregate.head)
+  def isStablePopulation =
+    (slidingAggregate.size >= WINDOWSIZE) && slidingAggregate.tail.forall(_ == slidingAggregate.head)
 
+  def resetStablePopulation { slidingAggregate = ParSeq(0) }
   /**
    * Move the pattern without altering its disposition
    */
   def moveTo(population: CellsAlive, center: XYpos): CellsAlive = {
 
-    def extremeCellsAlive: XYpos.Rect = {
+    def boundingBox: XYpos.Rect = {
       if (population.isEmpty)
-        throw new UnsupportedOperationException("empty.CellsAlive")
-
+        throw new UnsupportedOperationException("empty.boundingBox")
       var first = true
       var acc: XYpos.Rect = ((0, 0), (0, 0))
       for (x <- population) {
@@ -208,7 +210,7 @@ object CellularAutomaton {
       acc
     }
 
-    val extremes = extremeCellsAlive
+    val extremes = boundingBox
     val offset = XYpos(
       extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,
       extremes._1.y + (extremes._2.y - extremes._1.y) / 2 - center.y)

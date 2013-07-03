@@ -1,10 +1,18 @@
 package org.rosettacode
 package pargolfp
 
-import CellularAutomaton.{ CellsAlive, moveTo, nextGeneration }
+import CellularAutomaton.{
+  CellsAlive,
+  isStablePopulation,
+  moveTo,
+  nextGeneration,
+  resetStablePopulation,
+  WINDOWSIZE
+}
 import ConwayPatterns._
 
 import annotation.tailrec
+import collection.parallel.ParSet
 import language.postfixOps
 
 import org.scalatest.junit.AssertionsForJUnit
@@ -22,8 +30,8 @@ class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen {
       //      Then("each oscillator has its periodicity")
       //      testHarness("&Oscillators", testOscPeriode, "Failure in oscillators")
 
-//      Then("even Spaceships have periodicity")
-//      testHarness("&Spaceships", countExpectedPeriode, "Failure in spaceships")
+      //      Then("even Spaceships have periodicity")
+      //      testHarness("&Spaceships", countExpectedPeriode, "Failure in spaceships")
 
       Then("single Methuselahs become stable")
       testHarness("&Methuselahs", isStableGeneration, "Failure in methuselahs")
@@ -32,18 +40,16 @@ class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen {
 }
 
 object ModGoL_PatternsSpecTest {
-  final val WINDOWSIZE = 4 // To check for stable populations, use a window this big  
+  //final val WINDOWSIZE = 4 // To check for stable populations, use a window this big  
 
   def countExpectedPeriode(first: CellsAlive, expectedPeriodeCount: Int) = {
     @tailrec
     def inner(pop: CellsAlive,
       expPerCountDown: Int): Boolean = {
       val test = pop == moveTo(pop, (0, 0))
-      if ((expPerCountDown <= 0 )) {
-        println(first)
-        println(pop)
-        test == (expPerCountDown <= 0)}
-      else inner(nextGeneration(pop), expPerCountDown - 1)
+      if ((expPerCountDown <= 0)) {
+        test == (expPerCountDown <= 0)
+      } else inner(nextGeneration(pop), expPerCountDown - 1)
     }
     inner(first, expectedPeriodeCount)
   }
@@ -74,11 +80,13 @@ object ModGoL_PatternsSpecTest {
   def isStableGeneration(first: CellsAlive, expectedPeriodeCount: Int) = {
     @tailrec
     def inner(pop: CellsAlive, expectedPeriodeCountDown: Int): Boolean = {
-      if (expectedPeriodeCountDown <= 1 || CellularAutomaton.isStablePopulation)
-        CellularAutomaton.isStablePopulation
-      else inner(nextGeneration(pop), expectedPeriodeCountDown - 1)
+      if (expectedPeriodeCountDown <= 1 || isStablePopulation) {
+        println("Population: " + pop.size)
+        expectedPeriodeCountDown <= 1 == isStablePopulation
+      } else inner(nextGeneration(pop), expectedPeriodeCountDown - 1)
     }
-    inner(first, expectedPeriodeCount + CellularAutomaton.WINDOWSIZE)
+    resetStablePopulation // Reset the isStablePopulation buffer
+    inner(first, expectedPeriodeCount + WINDOWSIZE)
   }
 
   //  def getUnstableGenerations(first: CellsAlive, expectedPeriodeCount: Int) = {
