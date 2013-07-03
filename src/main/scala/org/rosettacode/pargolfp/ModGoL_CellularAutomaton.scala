@@ -191,7 +191,7 @@ object CellularAutomaton {
   /**
    * Move the pattern without altering its disposition
    */
-  def move(population: CellsAlive, center: XYpos): CellsAlive = {
+  def moveTo(population: CellsAlive, center: XYpos): CellsAlive = {
 
     def extremeCellsAlive: XYpos.Rect = {
       if (population.isEmpty)

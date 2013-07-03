@@ -7,6 +7,6 @@ A scala implementation of Conway's Game of Life, a cellular automaton devised in
 
 It is the best-known example of a cellular automaton and probably the most often programmed computer game in existence.
 
-A Conway grid is infinite two-dimensional orthogonal. In fact, Conway's Game of Life is Turing complete, so this implementation avoids using fixed-size structures such as arrays. Instead, each generation is represented by a __set of the "alive" cells__.
+A Conway grid is infinite two-dimensional orthogonal. In fact, Conway's Game of Life is Turing complete, so this implementation avoids using fixed-size structures such as arrays. Instead, each generation is represented by a __set of the "alive" cells__. So the presence of a coordinate in a set will signal the fact of a living cell.
 
 This solution is programmed with best practice and pragmatics of functional programming in Scala with its idiomatics.
