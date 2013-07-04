@@ -188,9 +188,9 @@ object CellularAutomaton {
 
   /** Detects a stabilization of the number of living cells */
   def isStablePopulation =
-    (slidingAggregate.size >= WINDOWSIZE) && slidingAggregate.tail.forall(_ == slidingAggregate.head)
+    (slidingAggregate.size >= WINDOWSIZE) &&
+      slidingAggregate.tail.forall(_ == slidingAggregate.head)
 
-  def resetStablePopulation { slidingAggregate = ParSeq(0) }
   /**
    * Move the pattern without altering its disposition
    */

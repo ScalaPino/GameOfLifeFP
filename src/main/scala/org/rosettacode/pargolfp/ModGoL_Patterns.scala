@@ -14,28 +14,28 @@ object ConwayPatterns {
   /**
    * Represents the available Conway patterns in a data-structure
    */
-  def patternCollection: Map[String, Seq[(String, String, Int)]] =
+  def patternCollection =
     Map("S&til Lives" ->
-      Seq(("Beehive", beehive, 1),
-        ("Block", block, 1),
-        ("Boat", boat, 1),
-        ("Loaf", loaf, 1)),
+      Seq(("Beehive", beehive, 1, 0),
+        ("Block", block, 1, 0),
+        ("Boat", boat, 1, 0),
+        ("Loaf", loaf, 1, 0)),
       "&Oscillators" ->
-        Seq(("Beacon", beacon, 2),
-          ("Blinker", blinker, 2),
-          ("Toad", toad, 2),
-          ("Pulsar", pulsar, 3),
-          ("Eight", eight, 8)),
+        Seq(("Beacon", beacon, 2, 0),
+          ("Blinker", blinker, 2, 0),
+          ("Toad", toad, 2, 0),
+          ("Pulsar", pulsar, 3, 0),
+          ("Eight", eight, 8, 0)),
       "&Spaceships" ->
-        Seq(("Glider", glider, 4),
-          ("Lightweight spaceships", lwss, 4)),
+        Seq(("Glider", glider, 4, 0),
+          ("Lightweight spaceships", lwss, 4, 0)),
       "&Methuselahs" ->
-        Seq(("&Acorn", acorn, 5206),
-          ("&Die hard", diehard, 130),
-          ("\"&R\" pentomino", rPentomino, 1103)),
+        Seq(("&Acorn", acorn, 5206, 633),
+          ("&Die hard", diehard, 130, 0),
+          ("\"&R\" pentomino", rPentomino, 1103, 116)),
       "&Guns" ->
-        Seq(("Gosper gun", gosperGun, 29)),
-      ("&Puffers" -> Seq.empty[(String, String, Int)]))
+        Seq(("Gosper gun", gosperGun, 29, 0)),
+      ("&Puffers" -> Seq.empty[(String, String, Int, Int)]))
 
   /** Still Live pattern: Block */
   val block = """|

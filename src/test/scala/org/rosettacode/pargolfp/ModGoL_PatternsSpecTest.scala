@@ -6,7 +6,6 @@ import CellularAutomaton.{
   isStablePopulation,
   moveTo,
   nextGeneration,
-  resetStablePopulation,
   WINDOWSIZE
 }
 import ConwayPatterns._
@@ -40,7 +39,6 @@ class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen {
 }
 
 object ModGoL_PatternsSpecTest {
-  //final val WINDOWSIZE = 4 // To check for stable populations, use a window this big  
 
   def countExpectedPeriode(first: CellsAlive, expectedPeriodeCount: Int) = {
     @tailrec
@@ -60,14 +58,14 @@ object ModGoL_PatternsSpecTest {
    *  is equal to expected value.
    */
   def testHarness(patterns: String,
-    test: (CellsAlive, Int) => Boolean,
+    test: (CellsAlive, Int, Int) => Boolean,
     msg: String) =
     {
       var testmsg = msg
       assert(patternCollection.get(patterns).get forall {
-        case (menuName, pattern, period) => {
+        case (menuName, pattern, period, popLeft) => {
           testmsg = f"$menuName%s: $msg%s"
-          test(moveTo(pattern, (0, 0)), period)
+          test(moveTo(pattern, (0, 0)), period, popLeft)
         }
       }, testmsg)
     }
@@ -77,16 +75,17 @@ object ModGoL_PatternsSpecTest {
    * stabilizes. This test only checks a window of generations for
    * population size.
    */
-  def isStableGeneration(first: CellsAlive, expectedPeriodeCount: Int) = {
+  def isStableGeneration(first: CellsAlive, 
+    expectedPeriodeCount: Int, 
+    popLeft: Int) = {
     @tailrec
-    def inner(pop: CellsAlive, expectedPeriodeCountDown: Int): Boolean = {
-      if (expectedPeriodeCountDown <= 1 || isStablePopulation) {
-        println("Population: " + pop.size)
-        expectedPeriodeCountDown <= 1 == isStablePopulation
-      } else inner(nextGeneration(pop), expectedPeriodeCountDown - 1)
+    def inner(pop: CellsAlive, expPerCountDown: Int): Boolean = {
+      val newPop = nextGeneration(pop)
+      if (expPerCountDown <= 0 || isStablePopulation)
+        {(expPerCountDown <= 0 == isStablePopulation) &&newPop.size == popLeft}
+      else inner(newPop, expPerCountDown - 1)
     }
-    resetStablePopulation // Reset the isStablePopulation buffer
-    inner(first, expectedPeriodeCount + WINDOWSIZE)
+    inner(first, expectedPeriodeCount + WINDOWSIZE-2)
   }
 
   //  def getUnstableGenerations(first: CellsAlive, expectedPeriodeCount: Int) = {
