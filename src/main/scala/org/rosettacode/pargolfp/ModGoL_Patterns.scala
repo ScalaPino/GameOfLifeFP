@@ -7,7 +7,7 @@ import language.implicitConversions
 /**
  * The object contains a collection of Conway patterns
  *
- * The patterns are stored in string, which can implicitly converted to a Set[Cell]
+ * The patterns are stored in string, which can implicitly converted to a Set[XYpos]
  */
 object ConwayPatterns {
 
@@ -170,10 +170,5 @@ object ConwayPatterns {
     (char, xCharPos) <- tupleCharCommaXCharPos
     if char != ' '
   } yield XYpos(xCharPos, lineNumber)).toSet.par
-
-  // Move a set of coordinates to a point
-  //  def moveTo(pattern: String, to: Cell) = (pattern: Iterator[Cell]) map (_ + to)
-  //def moveTo(coords: Iterator[Cell], to: Cell) = coords map (_ + to)
-  //def moveTo(coords: Traversable[Cell], to: Cell) = coords map (_ + to)
 } // object ConwayPatterns
 

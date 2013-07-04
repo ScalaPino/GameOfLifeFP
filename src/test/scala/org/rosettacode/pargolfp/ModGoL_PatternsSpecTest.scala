@@ -6,16 +6,15 @@ import CellularAutomaton.{
   isStablePopulation,
   moveTo,
   nextGeneration,
-  WINDOWSIZE
+  nextGenWithHistory
 }
 import ConwayPatterns._
-
 import annotation.tailrec
 import collection.parallel.ParSet
 import language.postfixOps
-
 import org.scalatest.junit.AssertionsForJUnit
 import org.scalatest._
+import collection.parallel.ParSeq
 
 class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen {
   import ModGoL_PatternsSpecTest._
@@ -39,6 +38,8 @@ class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen {
 }
 
 object ModGoL_PatternsSpecTest {
+
+  val WINDOWSIZE = 4
 
   def countExpectedPeriode(first: CellsAlive, expectedPeriodeCount: Int) = {
     @tailrec
@@ -75,17 +76,36 @@ object ModGoL_PatternsSpecTest {
    * stabilizes. This test only checks a window of generations for
    * population size.
    */
-  def isStableGeneration(first: CellsAlive, 
-    expectedPeriodeCount: Int, 
+  def isStableGeneration(first: CellsAlive,
+    expectedPeriodeCount: Int,
+    popLeft: Int) = {
+    @tailrec
+    def inner(pops: ParSeq[CellsAlive], expPerCountDown: Int): Boolean = {
+      val newPops = nextGenWithHistory(pops, WINDOWSIZE)
+      if (expPerCountDown <= 0 || isStablePopulation(newPops, WINDOWSIZE)) {
+        (expPerCountDown <= 0 == isStablePopulation(newPops, WINDOWSIZE)) &&
+          newPops.head.size == popLeft
+      } else inner(newPops, expPerCountDown - 1)
+    }
+    inner(ParSeq(first), expectedPeriodeCount + WINDOWSIZE - 2)
+  }
+
+  /**
+   * Return the number of generations until the population of a pattern
+   * stabilizes. This test only checks a window of generations for
+   * population size.
+   */
+  def isStableGeneration0(first: CellsAlive,
+    expectedPeriodeCount: Int,
     popLeft: Int) = {
     @tailrec
     def inner(pop: CellsAlive, expPerCountDown: Int): Boolean = {
       val newPop = nextGeneration(pop)
-      if (expPerCountDown <= 0 || isStablePopulation)
-        {(expPerCountDown <= 0 == isStablePopulation) &&newPop.size == popLeft}
-      else inner(newPop, expPerCountDown - 1)
+      if (expPerCountDown <= 0 || isStablePopulation) {
+        (expPerCountDown <= 0 == isStablePopulation) && newPop.size == popLeft
+      } else inner(newPop, expPerCountDown - 1)
     }
-    inner(first, expectedPeriodeCount + WINDOWSIZE-2)
+    inner(first, expectedPeriodeCount + WINDOWSIZE - 2)
   }
 
   //  def getUnstableGenerations(first: CellsAlive, expectedPeriodeCount: Int) = {
