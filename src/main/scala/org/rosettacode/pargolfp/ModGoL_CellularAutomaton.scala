@@ -116,71 +116,58 @@ object XYpos {
         newPos
       }
     }
-  // The XYpos factory which checks if the new XYpos already exists.
-  // By means of the default method.
+  /**
+   * The XYpos factory which checks if the new XYpos already exists.
+   * By means of the default method of the HashMap
+   */
   def apply(x: Int, y: Int): XYpos = { cache(x, y) }
 
-  /** A Tuple2[Int, Int] can be used as a XYpos through this implicit conversion.*/
+  /**A Tuple2[Int, Int] can be used as a XYpos through this implicit conversion.*/
   implicit def tupleToXYpos(t: (Int, Int)): XYpos = apply(t._1, t._2)
 } // object XYpos
 
 /////////////////////////////////////////////////////////////////////////////
 // CellularAutomaton section
 /**
- * Basic virtual game.
+ * The basic virtual game. This object contains the functions with living
+ * cells. The case of combined XYpos: CellsAlive.
  */
 object CellularAutomaton {
   import XYpos.generation
   type CellsAlive = collection.parallel.ParSet[XYpos]
 
-  // Some bookkeeping
-  final val WINDOWSIZE = 4
-  private var slidingAggregate = ParSeq(0)
-
-  /**
-   * The next generation is composed of newborns from fecund
-   *  neighborhoods and adults on stable neighborhoods.
-   */
-  def nextGeneration0(population: CellsAlive,
-    rulestringB: Set[Int], // Rulestrings describe Life-like rules
-    rulestringS: Set[Int]): CellsAlive = {
-    assume(generation != Int.MaxValue, "Generations outnumbered")
-    generation += 1
-
-    /*
-     * A map containing all coordinates that are neighbors of XYpos which
-     * are alive, together with the number of XYpos it is neighbor of.
-     */
-    val neighbors =
-      (population.toList flatMap (_.getMooreNeighborhood)).par groupBy (identity) map {
-        case (cell, list) => (cell, list.size)
-      }
-    // Filter all neighbors for desired characteristics
-
-    // Criterion of rulestring Birth
-    def reproductions = neighbors.filter(fFilter => rulestringB contains fFilter._2).keys
-    // Criterion of Survivors rulestring 
-    def survivors = neighbors.filter(fFilter => /*test n XYpos then AND previous existence */
-      (rulestringS contains fFilter._2) && (population contains fFilter._1)).keySet
-    (survivors ++ reproductions)
-  } // def nextGeneration0
-
-  def nextGeneration(population: CellsAlive,
-    rulestringS: Set[Int] = Set(2, 3), // Default Conway's GoL S23B3
-    rulestringB: Set[Int] = Set(3)) = {
-    val ret = nextGeneration0(population, rulestringB, rulestringS)
-    // Registering aggregate data
-    slidingAggregate =
-      (if (slidingAggregate.size >= WINDOWSIZE) ParSeq.empty[Int]
-      else ParSeq(slidingAggregate.head)) ++ slidingAggregate.tail ++ ParSeq(ret.size)
-    ret
-  }
-
   def nextGenWithHistory(populations: ParSeq[CellsAlive],
     WindowSize: Int,
     rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
     rulestringS: Set[Int] = Set(2, 3)): ParSeq[CellsAlive] = {
-    val ret = nextGeneration0(populations.head, rulestringB, rulestringS)
+    /**
+     * The next generation is composed of newborns from fecund
+     *  neighborhoods and adults on stable neighborhoods.
+     */
+    def nextGeneration(population: CellsAlive,
+      rulestringB: Set[Int], // Rulestrings describe Life-like rules
+      rulestringS: Set[Int]): CellsAlive = {
+      assume(generation != Int.MaxValue, "Generations outnumbered")
+      generation += 1
+
+      /* A map containing all coordinates that are neighbors of XYpos which
+     * are alive, together with the number of XYpos it is neighbor of.
+     */
+      val neighbors =
+        (population.toList flatMap (_.getMooreNeighborhood)).par groupBy (identity) map {
+          case (cell, list) => (cell, list.size)
+        }
+      // Filter all neighbors for desired characteristics
+
+      // Criterion of rulestring Birth
+      def reproductions = neighbors.filter(fFilter => rulestringB contains fFilter._2).keys
+      // Criterion of Survivors rulestring 
+      def survivors = neighbors.filter(fFilter => /*test n XYpos then AND previous existence */
+        (rulestringS contains fFilter._2) && (population contains fFilter._1)).keySet
+      (survivors ++ reproductions)
+    } // def nextGeneration
+
+    val ret = nextGeneration(populations.head, rulestringB, rulestringS)
     // Returning new generation in a list
     ParSeq(ret) ++ populations.take(WindowSize - 1)
   }
@@ -190,28 +177,20 @@ object CellularAutomaton {
     val absThreshold = generation - threshold
     if (absThreshold <= generation) { // Prevent underflow
       for (elem <- XYpos.cache)
-        if ((absThreshold) >= elem._2.timestamp) XYpos.cache.remove(elem._1)
+        if (absThreshold >= elem._2.timestamp) XYpos.cache.remove(elem._1)
     }
   }
 
   /** Detects a stabilization of the number of living cells */
-  def isStablePopulation =
-    (slidingAggregate.size >= WINDOWSIZE) &&
-      slidingAggregate.tail.forall(_ == slidingAggregate.head)
-
-  def isStablePopulation(pops: ParSeq[CellsAlive], window: Int): Boolean = {
-    pops.size >= window &&
-      pops.tail.forall(_.size == pops.head.size)
-  }
+  def isStablePopulation(pops: ParSeq[CellsAlive], window: Int): Boolean =
+    pops.size >= window && pops.tail.forall(_.size == pops.head.size)
 
   /**
    * Move the pattern without altering its disposition
    */
   def moveTo(population: CellsAlive, center: XYpos): CellsAlive = {
-
+    // Determine the envelope of all cells
     def boundingBox: XYpos.Rect = {
-      if (population.isEmpty)
-        throw new UnsupportedOperationException("empty.boundingBox")
       var first = true
       var acc: XYpos.Rect = ((0, 0), (0, 0))
       for (x <- population) {
@@ -228,7 +207,7 @@ object CellularAutomaton {
       extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,
       extremes._1.y + (extremes._2.y - extremes._1.y) / 2 - center.y)
     population map (_ - offset)
-  }
+  } // def moveTo
 } // object CellularAutomaton
 
 //############################################################################

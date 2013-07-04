@@ -5,7 +5,6 @@ import CellularAutomaton.{
   CellsAlive,
   isStablePopulation,
   moveTo,
-  nextGeneration,
   nextGenWithHistory
 }
 import ConwayPatterns._
@@ -32,7 +31,7 @@ class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen {
       //      testHarness("&Spaceships", countExpectedPeriode, "Failure in spaceships")
 
       Then("single Methuselahs become stable")
-      testHarness("&Methuselahs", isStableGeneration, "Failure in methuselahs")
+      testHarness("&Methuselahs", testLifeSpan, "Failure in methuselahs")
     }
   }
 }
@@ -41,17 +40,17 @@ object ModGoL_PatternsSpecTest {
 
   val WINDOWSIZE = 4
 
-  def countExpectedPeriode(first: CellsAlive, expectedPeriodeCount: Int) = {
-    @tailrec
-    def inner(pop: CellsAlive,
-      expPerCountDown: Int): Boolean = {
-      val test = pop == moveTo(pop, (0, 0))
-      if ((expPerCountDown <= 0)) {
-        test == (expPerCountDown <= 0)
-      } else inner(nextGeneration(pop), expPerCountDown - 1)
-    }
-    inner(first, expectedPeriodeCount)
-  }
+  //  def countExpectedPeriode(first: CellsAlive, expectedPeriodeCount: Int) = {
+  //    @tailrec
+  //    def inner(pop: CellsAlive,
+  //      expPerCountDown: Int): Boolean = {
+  //      val test = pop == moveTo(pop, (0, 0))
+  //      if ((expPerCountDown <= 0)) {
+  //        test == (expPerCountDown <= 0)
+  //      } else inner(nextGeneration(pop), expPerCountDown - 1)
+  //    }
+  //    inner(first, expectedPeriodeCount)
+  //  }
 
   /**
    * For each pattern passed, apply a function which will measure some
@@ -76,7 +75,7 @@ object ModGoL_PatternsSpecTest {
    * stabilizes. This test only checks a window of generations for
    * population size.
    */
-  def isStableGeneration(first: CellsAlive,
+  def testLifeSpan(first: CellsAlive,
     expectedPeriodeCount: Int,
     popLeft: Int) = {
     @tailrec
@@ -88,24 +87,6 @@ object ModGoL_PatternsSpecTest {
       } else inner(newPops, expPerCountDown - 1)
     }
     inner(ParSeq(first), expectedPeriodeCount + WINDOWSIZE - 2)
-  }
-
-  /**
-   * Return the number of generations until the population of a pattern
-   * stabilizes. This test only checks a window of generations for
-   * population size.
-   */
-  def isStableGeneration0(first: CellsAlive,
-    expectedPeriodeCount: Int,
-    popLeft: Int) = {
-    @tailrec
-    def inner(pop: CellsAlive, expPerCountDown: Int): Boolean = {
-      val newPop = nextGeneration(pop)
-      if (expPerCountDown <= 0 || isStablePopulation) {
-        (expPerCountDown <= 0 == isStablePopulation) && newPop.size == popLeft
-      } else inner(newPop, expPerCountDown - 1)
-    }
-    inner(first, expectedPeriodeCount + WINDOWSIZE - 2)
   }
 
   //  def getUnstableGenerations(first: CellsAlive, expectedPeriodeCount: Int) = {
