@@ -2,18 +2,17 @@ package org.rosettacode
 package pargolfp
 
 import CellularAutomaton.{
-  CellsAlive,
+  Generation,
   isStablePopulation,
   moveTo,
   nextGenWithHistory
 }
 import ConwayPatterns._
+
 import annotation.tailrec
-import collection.parallel.ParSet
+import collection.parallel.{ParSeq, ParSet}
 import language.postfixOps
-import org.scalatest.junit.AssertionsForJUnit
 import org.scalatest._
-import collection.parallel.ParSeq
 
 class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen {
   import ModGoL_PatternsSpecTest._
@@ -38,8 +37,6 @@ class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen {
 
 object ModGoL_PatternsSpecTest {
 
-  val WINDOWSIZE = 4
-
   //  def countExpectedPeriode(first: CellsAlive, expectedPeriodeCount: Int) = {
   //    @tailrec
   //    def inner(pop: CellsAlive,
@@ -58,14 +55,14 @@ object ModGoL_PatternsSpecTest {
    *  is equal to expected value.
    */
   def testHarness(patterns: String,
-    test: (CellsAlive, Int, Int) => Boolean,
+    test: (Generation, Int, Int) => Boolean,
     msg: String) =
     {
       var testmsg = msg
       assert(patternCollection.get(patterns).get forall {
         case (menuName, pattern, period, popLeft) => {
           testmsg = f"$menuName%s: $msg%s"
-          test(moveTo(pattern, (0, 0)), period, popLeft)
+          test(moveTo(pattern), period, popLeft)
         }
       }, testmsg)
     }
@@ -75,18 +72,22 @@ object ModGoL_PatternsSpecTest {
    * stabilizes. This test only checks a window of generations for
    * population size.
    */
-  def testLifeSpan(first: CellsAlive,
+  def testLifeSpan(seed: Generation,
     expectedPeriodeCount: Int,
-    popLeft: Int) = {
+    expectedPopLeft: Int) = {
+    val slidingWindowSize = 4
     @tailrec
-    def inner(pops: ParSeq[CellsAlive], expPerCountDown: Int): Boolean = {
-      val newPops = nextGenWithHistory(pops, WINDOWSIZE)
-      if (expPerCountDown <= 0 || isStablePopulation(newPops, WINDOWSIZE)) {
-        (expPerCountDown <= 0 == isStablePopulation(newPops, WINDOWSIZE)) &&
-          newPops.head.size == popLeft
-      } else inner(newPops, expPerCountDown - 1)
+    def inner(pops: ParSeq[Generation], expPerCountDown: Int): Boolean = {
+      val newPops = nextGenWithHistory(pops, slidingWindowSize)
+      // The termination condition, either lifespan count
+      // or no change in the number of living cells.
+      if (expPerCountDown <= 0 || isStablePopulation(newPops, slidingWindowSize)) {
+        // If termination condition valid, return if the reason is valid.
+        (expPerCountDown <= 0 == isStablePopulation(newPops, slidingWindowSize)) &&
+          newPops.head.size == expectedPopLeft // Stable population count
+      } else inner(newPops, expPerCountDown - 1) // Else continue
     }
-    inner(ParSeq(first), expectedPeriodeCount + WINDOWSIZE - 2)
+    inner(ParSeq(seed), expectedPeriodeCount + slidingWindowSize - 2)
   }
 
   //  def getUnstableGenerations(first: CellsAlive, expectedPeriodeCount: Int) = {

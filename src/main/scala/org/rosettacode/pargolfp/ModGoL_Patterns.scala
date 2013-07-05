@@ -1,7 +1,7 @@
 package org.rosettacode
 package pargolfp
 
-import collection.parallel.ParSet
+//import collection.parallel.ParSet
 import language.implicitConversions
 
 /**
@@ -63,11 +63,7 @@ object ConwayPatterns {
                 |"""
 
   /** Oscillator pattern: Blinker */
-  val blinker = """|
-                   |
-                   | XXX
-                   |
-                   |"""
+  val blinker = """| XXX"""
   /** Oscillator pattern: Toad */
   val toad = """|
                 |
@@ -166,7 +162,8 @@ object ConwayPatterns {
    *
    */
   implicit def cellsFromPattern(pattern: String) = (for {
-    (tupleCharCommaXCharPos, lineNumber) <- pattern.stripMargin.lines.map(_.zipWithIndex).zipWithIndex
+    (tupleCharCommaXCharPos, lineNumber) <- pattern.
+      stripMargin.lines.map(_.zipWithIndex).zipWithIndex
     (char, xCharPos) <- tupleCharCommaXCharPos
     if char != ' '
   } yield XYpos(xCharPos, lineNumber)).toSet.par

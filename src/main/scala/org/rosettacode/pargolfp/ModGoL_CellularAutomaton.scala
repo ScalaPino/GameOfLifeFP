@@ -56,15 +56,10 @@ class XYpos(val x: Int,
   def -(that: XYpos): XYpos = this plus (-that.x, -that.y)
 
   /**
-   * Get the maximal numbers of either coordinate.
+   * Get the maximal respectively minimal numbers of either coordinate.
    * Resulting point is mostly distant of both points!
    */
   private def max(that: XYpos) = XYpos(this.x max that.x, this.y max that.y)
-
-  /**
-   * Get the minimal numbers of either coordinate.
-   * Resulting point is mostly distant of both points!
-   */
   private def min(that: XYpos) = XYpos(this.x min that.x, this.y min that.y)
 
   /**
@@ -96,11 +91,11 @@ object XYpos {
   var generation = Int.MinValue
 
   private def offsets = (-1 to 1) // For neighbor selection
-  private val mooreNeighborhood = for {
+  private val mooreNeighborhood = (for {
     dx <- offsets
     dy <- offsets
     if dx != 0 || dy != 0
-  } yield (dx, dy)
+  } yield (dx, dy))
 
   /**
    * The cache will check if the new XYpos already exists.
@@ -134,25 +129,28 @@ object XYpos {
  */
 object CellularAutomaton {
   import XYpos.generation
-  type CellsAlive = collection.parallel.ParSet[XYpos]
+  type Generation = collection.parallel.ParSet[XYpos]
 
-  def nextGenWithHistory(populations: ParSeq[CellsAlive],
+  /**
+   *
+   */
+  def nextGenWithHistory(populations: ParSeq[Generation],
     WindowSize: Int,
     rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
-    rulestringS: Set[Int] = Set(2, 3)): ParSeq[CellsAlive] = {
+    rulestringS: Set[Int] = Set(2, 3)): ParSeq[Generation] = {
     /**
      * The next generation is composed of newborns from fecund
      *  neighborhoods and adults on stable neighborhoods.
      */
-    def nextGeneration(population: CellsAlive,
+    def nextGeneration(population: Generation,
       rulestringB: Set[Int], // Rulestrings describe Life-like rules
-      rulestringS: Set[Int]): CellsAlive = {
+      rulestringS: Set[Int]): Generation = {
       assume(generation != Int.MaxValue, "Generations outnumbered")
       generation += 1
 
       /* A map containing all coordinates that are neighbors of XYpos which
-     * are alive, together with the number of XYpos it is neighbor of.
-     */
+       * are alive, together with the number of XYpos it is neighbor of.
+       */
       val neighbors =
         (population.toList flatMap (_.getMooreNeighborhood)).par groupBy (identity) map {
           case (cell, list) => (cell, list.size)
@@ -167,12 +165,40 @@ object CellularAutomaton {
       (survivors ++ reproductions)
     } // def nextGeneration
 
-    val ret = nextGeneration(populations.head, rulestringB, rulestringS)
     // Returning new generation in a list
-    ParSeq(ret) ++ populations.take(WindowSize - 1)
+    ParSeq(nextGeneration(populations.head, rulestringB, rulestringS)) ++
+      populations.take(WindowSize - 1)
+  } // def nextGenWithHistory(...
+
+  /** Detects a stabilization of the number of living cells */
+  def isStablePopulation(pops: ParSeq[Generation], window: Int): Boolean =
+    pops.size >= window && pops.tail.forall(_.size == pops.head.size)
+
+  /** Determine the envelope of all cells in a generation*/
+  def boundingBox(population: Generation): XYpos.Rect = {
+    var first = true
+    var acc: XYpos.Rect = ((0, 0), (0, 0))
+    for (x <- population) {
+      if (first) {
+        acc = x extreme x
+        first = false
+      } else acc = x extreme acc
+    }
+    acc
   }
 
-  // Remove unused XYpos from the cache while keeping given generations.
+  /**
+   * Moves the pattern without altering its disposition
+   */
+  def moveTo(population: Generation, center: XYpos = (0, 0)): Generation = {
+    val extremes = boundingBox(population)
+    val offset = XYpos(
+      extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,
+      extremes._1.y + (extremes._2.y - extremes._1.y) / 2 - center.y)
+    population map (_ - offset)
+  } // def moveTo
+
+  /** Remove unused XYpos from the cache while keeping given generations.*/
   def flushCache(threshold: Int) {
     val absThreshold = generation - threshold
     if (absThreshold <= generation) { // Prevent underflow
@@ -180,34 +206,6 @@ object CellularAutomaton {
         if (absThreshold >= elem._2.timestamp) XYpos.cache.remove(elem._1)
     }
   }
-
-  /** Detects a stabilization of the number of living cells */
-  def isStablePopulation(pops: ParSeq[CellsAlive], window: Int): Boolean =
-    pops.size >= window && pops.tail.forall(_.size == pops.head.size)
-
-  /**
-   * Move the pattern without altering its disposition
-   */
-  def moveTo(population: CellsAlive, center: XYpos): CellsAlive = {
-    // Determine the envelope of all cells
-    def boundingBox: XYpos.Rect = {
-      var first = true
-      var acc: XYpos.Rect = ((0, 0), (0, 0))
-      for (x <- population) {
-        if (first) {
-          acc = x extreme x
-          first = false
-        } else acc = x extreme acc
-      }
-      acc
-    }
-
-    val extremes = boundingBox
-    val offset = XYpos(
-      extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,
-      extremes._1.y + (extremes._2.y - extremes._1.y) / 2 - center.y)
-    population map (_ - offset)
-  } // def moveTo
 } // object CellularAutomaton
 
 //############################################################################
