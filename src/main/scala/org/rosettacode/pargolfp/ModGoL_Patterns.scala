@@ -161,7 +161,7 @@ object ConwayPatterns {
   /**
    *
    */
-  implicit def cellsFromPattern(pattern: String) = (for {
+  implicit def generationFromPattern(pattern: String) = (for {
     (tupleCharCommaXCharPos, lineNumber) <- pattern.
       stripMargin.lines.map(_.zipWithIndex).zipWithIndex
     (char, xCharPos) <- tupleCharCommaXCharPos

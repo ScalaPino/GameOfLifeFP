@@ -92,8 +92,8 @@ object XYpos {
 
   private def offsets = (-1 to 1) // For neighbor selection
   private val mooreNeighborhood = (for {
-    dx <- offsets
-    dy <- offsets
+    dx <- offsets.seq
+    dy <- offsets.seq
     if dx != 0 || dy != 0
   } yield (dx, dy))
 
@@ -175,34 +175,31 @@ object CellularAutomaton {
     pops.size >= window && pops.tail.forall(_.size == pops.head.size)
 
   /** Determine the envelope of all cells in a generation*/
-  def boundingBox(population: Generation): XYpos.Rect = {
-    var first = true
-    var acc: XYpos.Rect = ((0, 0), (0, 0))
-    for (x <- population) {
-      if (first) {
-        acc = x extreme x
-        first = false
-      } else acc = x extreme acc
+  // f: collection.parallel.ParSet[XYpos] => XYpos.Rect
+  def boundingBox(gen: Generation): XYpos.Rect = {
+    if (gen.isEmpty)
+      throw new UnsupportedOperationException("empty.boundingBox")
+    gen.foldLeft(gen.head extreme gen.head) {
+      (resultingRect, currentPos) => (currentPos extreme resultingRect)
     }
-    acc
   }
 
   /**
    * Moves the pattern without altering its disposition
    */
-  def moveTo(population: Generation, center: XYpos = (0, 0)): Generation = {
-    val extremes = boundingBox(population)
+  def moveTo(gen: Generation, center: XYpos = (0, 0)): Generation = {
+    val extremes = boundingBox(gen)
     val offset = XYpos(
       extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,
       extremes._1.y + (extremes._2.y - extremes._1.y) / 2 - center.y)
-    population map (_ - offset)
+    gen.map(_ - offset).par
   } // def moveTo
 
   /** Remove unused XYpos from the cache while keeping given generations.*/
   def flushCache(threshold: Int) {
     val absThreshold = generation - threshold
     if (absThreshold <= generation) { // Prevent underflow
-      for (elem <- XYpos.cache)
+      for (elem <- XYpos.cache.seq)
         if (absThreshold >= elem._2.timestamp) XYpos.cache.remove(elem._1)
     }
   }
