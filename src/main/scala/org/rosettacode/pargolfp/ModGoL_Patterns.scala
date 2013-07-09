@@ -1,7 +1,7 @@
 package org.rosettacode
 package pargolfp
 
-//import collection.parallel.ParSet
+import collection.parallel.ParSet
 import language.implicitConversions
 
 /**

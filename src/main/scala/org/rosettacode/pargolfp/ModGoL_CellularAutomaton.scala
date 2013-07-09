@@ -124,22 +124,22 @@ object XYpos {
  */
 object CellularAutomaton {
   import XYpos.generation
-  type Generation = collection.parallel.ParSet[XYpos]
+  type PetriDish = collection.parallel.ParSet[XYpos]
 
   /**
    *
    */
-  def nextGenWithHistory(populations: ParSeq[Generation],
+  def nextGenWithHistory(populations: ParSeq[PetriDish],
     WindowSize: Int,
     rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
-    rulestringS: Set[Int] = Set(2, 3)): ParSeq[Generation] = {
+    rulestringS: Set[Int] = Set(2, 3)): ParSeq[PetriDish] = {
     /**
      * The next generation is composed of newborns from fecund
      *  neighborhoods and adults on stable neighborhoods.
      */
-    def nextGeneration(population: Generation,
+    def nextGeneration(population: PetriDish,
       rulestringB: Set[Int], // Rulestrings describe Life-like rules
-      rulestringS: Set[Int]): Generation = {
+      rulestringS: Set[Int]): PetriDish = {
       assume(generation != Int.MaxValue, "Generations outnumbered")
       generation += 1
 
@@ -166,12 +166,12 @@ object CellularAutomaton {
   } // def nextGenWithHistory(...
 
   /** Detects a stabilization of the number of living cells */
-  def isStablePopulation(pops: ParSeq[Generation], window: Int): Boolean =
+  def isStablePopulation(pops: ParSeq[PetriDish], window: Int): Boolean =
     pops.size >= window && pops.tail.forall(_.size == pops.head.size)
 
   /** Determine the envelope of all cells in a generation*/
   // f: collection.parallel.ParSet[XYpos] => XYpos.Rect
-  def boundingBox(gen: Generation): XYpos.Rect = {
+  def boundingBox(gen: PetriDish): XYpos.Rect = {
     if (gen.isEmpty)
       throw new UnsupportedOperationException("empty.boundingBox")
     gen.foldLeft(gen.head extreme gen.head) {
@@ -182,7 +182,7 @@ object CellularAutomaton {
   /**
    * Moves the pattern without altering its disposition
    */
-  def moveTo(gen: Generation, center: XYpos = (0, 0)): Generation = {
+  def moveTo(gen: PetriDish, center: XYpos = (0, 0)): PetriDish = {
     val extremes = boundingBox(gen)
     val offset = XYpos(
       extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,
@@ -194,7 +194,7 @@ object CellularAutomaton {
   def flushCache(threshold: Int) {
     val absThreshold = generation - threshold
     if (absThreshold <= generation) { // Prevent underflow
-      for (elem <- XYpos.cache )
+      for (elem <- XYpos.cache)
         if (absThreshold >= elem._2.timestamp) XYpos.cache -= elem._1
     }
   }

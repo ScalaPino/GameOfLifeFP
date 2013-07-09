@@ -2,7 +2,7 @@ package org.rosettacode
 package pargolfp
 
 import CellularAutomaton.{
-  Generation,
+  PetriDish,
   isStablePopulation,
   moveTo,
   nextGenWithHistory
@@ -55,7 +55,7 @@ object ModGoL_PatternsSpecTest {
    *  is equal to expected value.
    */
   def testHarness(patterns: String,
-    test: (Generation, Int, Int) => Boolean,
+    test: (PetriDish, Int, Int) => Boolean,
     msg: String) =
     {
       var testmsg = msg
@@ -72,12 +72,12 @@ object ModGoL_PatternsSpecTest {
    * stabilizes. This test only checks a window of generations for
    * population size.
    */
-  def testLifeSpan(seed: Generation,
+  def testLifeSpan(seed: PetriDish,
     expectedPeriodeCount: Int,
     expectedPopLeft: Int) = {
     val slidingWindowSize = 4
     @tailrec
-    def inner(pops: ParSeq[Generation], expPerCountDown: Int): Boolean = {
+    def inner(pops: ParSeq[PetriDish], expPerCountDown: Int): Boolean = {
       val newPops = nextGenWithHistory(pops, slidingWindowSize)
       // The termination condition, either lifespan count
       // or no change in the number of living cells.
