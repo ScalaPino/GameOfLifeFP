@@ -10,7 +10,7 @@ import CellularAutomaton.{
 import ConwayPatterns._
 
 import annotation.tailrec
-import collection.parallel.{ParSeq, ParSet}
+import collection.parallel.{ ParSeq, ParSet }
 import language.postfixOps
 import org.scalatest._
 

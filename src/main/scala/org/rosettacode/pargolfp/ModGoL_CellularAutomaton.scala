@@ -2,8 +2,8 @@ package org.rosettacode
 package pargolfp
 
 import language.{ implicitConversions, postfixOps }
-import collection.parallel.mutable.ParHashMap
 import collection.parallel.ParSeq
+import collection.concurrent.TrieMap
 
 /**
  *
@@ -103,19 +103,14 @@ object XYpos {
    * It makes equality and groupBy (identity) possible.
    * Least Recently Used policy can be used on this cache.
    */
-  val cache: ParHashMap[(Int, Int), XYpos] =
-    new ParHashMap[(Int, Int), XYpos]() {
-      override def default(key: (Int, Int)) = { // Key not found
-        val newPos = new XYpos(key._1, key._2)
-        cache((key._1, key._2)) = newPos /*Update cache */
-        newPos
-      }
-    }
+  val cache = TrieMap((0, 0) -> new XYpos(0, 0))
+
   /**
    * The XYpos factory which checks if the new XYpos already exists.
    * By means of the default method of the HashMap
    */
-  def apply(x: Int, y: Int): XYpos = { cache(x, y) }
+  def apply(x: Int, y: Int): XYpos =
+    { cache.getOrElseUpdate((x, y), new XYpos(x, y)) }
 
   /**A Tuple2[Int, Int] can be used as a XYpos through this implicit conversion.*/
   implicit def tupleToXYpos(t: (Int, Int)): XYpos = apply(t._1, t._2)
@@ -153,7 +148,7 @@ object CellularAutomaton {
        */
       val neighbors =
         (population.toList flatMap (_.getMooreNeighborhood)).par groupBy (identity) map {
-          case (cell, list) => (cell, list.size)
+          case (cell, coll) => (cell, coll.size)
         }
       // Filter all neighbors for desired characteristics
 
@@ -165,7 +160,7 @@ object CellularAutomaton {
       (survivors ++ reproductions)
     } // def nextGeneration
 
-    // Returning new generation in a list
+    // Returning new generation in a collection
     ParSeq(nextGeneration(populations.head, rulestringB, rulestringS)) ++
       populations.take(WindowSize - 1)
   } // def nextGenWithHistory(...
@@ -192,15 +187,15 @@ object CellularAutomaton {
     val offset = XYpos(
       extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,
       extremes._1.y + (extremes._2.y - extremes._1.y) / 2 - center.y)
-    gen.map(_ - offset).par
+    gen.map(_ - offset)
   } // def moveTo
 
   /** Remove unused XYpos from the cache while keeping given generations.*/
   def flushCache(threshold: Int) {
     val absThreshold = generation - threshold
     if (absThreshold <= generation) { // Prevent underflow
-      for (elem <- XYpos.cache.seq)
-        if (absThreshold >= elem._2.timestamp) XYpos.cache.remove(elem._1)
+      for (elem <- XYpos.cache )
+        if (absThreshold >= elem._2.timestamp) XYpos.cache -= elem._1
     }
   }
 } // object CellularAutomaton
