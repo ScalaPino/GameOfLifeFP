@@ -20,10 +20,9 @@ import CellularAutomaton.{
   moveTo,
   nextGenWithHistory
 }
-import org.scalatest._
 
-object Main extends FunSpec {
-  final val slidingWindow = 4
+object Main {
+  final val slidingWindow = 9
 
   def getPeriods(seed: PetriDish): ParSeq[PetriDish] = {
     val reference = moveTo(seed)
@@ -42,30 +41,31 @@ object Main extends FunSpec {
   }
 
   def main(args: Array[String]): Unit = {
-    println("Started")
 
-    val b: PetriDish = blinker
-    assert(b === ParSet(XYpos(2, 0), XYpos(1, 0), XYpos(3, 0)),
-      "String to Generation failed")
+    def doPrintlnGenerations(patternName: String,
+      friendlyName: String = "Pattern") {
+      println(s"Compute ${friendlyName} generations started")
 
-    val c = moveTo(b)
-    assert(c === ParSet(XYpos(0, 0), XYpos(1, 0), XYpos(-1, 0)), "MoveTo failed")
+      val gens = getPeriods(patternName).reverse
 
-    assert(boundingBox(c) === (XYpos(-1, 0), XYpos(1, 0)), "Boundingbox failed.")
-    println("Generations")
-    val blinKer = getPeriods(blinker).reverse
-    println("Generation done")
-    println(blinKer.map(_.size))
-    println(blinKer)
-    println("Boundingbox :" + boundingBox(blinKer.flatten.toSet))
+      val boundery = boundingBox(gens.flatten.toSet)
+      val frameWidth = boundery._2.x - boundery._1.x + 2
+      println(frameWidth)
 
-    val boundery = boundingBox(blinKer.flatten.toSet)
+      var genCounter = -1
+      for (y <- boundery._2.y + 1 to boundery._1.y by -1) {
 
-    for (y <- boundery._2.y to boundery._1.y by -1) {
-      for (window <- blinKer.seq)
-        for { x <- boundery._1.x to boundery._2.x }
-          print(if (window.contains(x, y)) 'X' else ' ')
-      println
+        println(
+          (for { window <- gens.seq }
+            yield if (y == boundery._2.y + 1) { f"Gen ${genCounter += 1; genCounter}%s" }
+          else (for (x <- boundery._1.x to boundery._2.x)
+            yield if (window.contains(x, y)) '☻' else '·').mkString).mkString(" "))
+      }
+      println(s"${genCounter} gen's $friendlyName")
     }
+
+    doPrintlnGenerations(blinker, "Blinker")
+    doPrintlnGenerations(eight, "Eight")
+
   } // def main
 }
