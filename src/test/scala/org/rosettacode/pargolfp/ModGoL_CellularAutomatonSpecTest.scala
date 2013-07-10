@@ -6,9 +6,9 @@ import org.scalatest.junit.AssertionsForJUnit
 import collection.parallel.ParSet
 
 class M_GoL_CellularAutomatonSpecTest extends FunSpec with GivenWhenThen {
-  val (x0, y0) = (3, 25)
-  val (x1, y1) = (x0 + 1, y0)
-  val (x2, y2) = (x1 + 1, y0)
+  private val (x0, y0) = (3, 25)
+  private val (x1, y1) = (x0 + 1, y0)
+  private val (x2, y2) = (x1 + 1, y0)
 
   describe("A Cell") {
     it("has is equality function") {
@@ -49,17 +49,17 @@ class M_GoL_CellularAutomatonSpecTest extends FunSpec with GivenWhenThen {
       var universe = ParSet(XYpos(x0, y0), XYpos(x1, y1), XYpos(x2, y2))
 
       Then("oscilate to crossed position")
-      universe = CellularAutomaton.nextGeneration(universe)
+      universe = CellularAutomaton.nextGen(universe)
       expectResult(ParSet(XYpos(x1, y1 - 1), XYpos(x1, y1), XYpos(x1, y1 + 1))) { universe }
 
       And("oscilate back to orginal position")
-      universe = CellularAutomaton.nextGeneration(universe)
+      universe = CellularAutomaton.nextGen(universe)
       expectResult(ParSet[XYpos]((x0, y0), (x1, y1), (x2, y2))) { universe }
 
       And(f"Cache has ${XYpos.cache.size}%d cached cells")
       And("Reduce cache  the second deep")
       CellularAutomaton.flushCache(2)
-      expectResult(29) { XYpos.cache.size }
+      expectResult(21) { XYpos.cache.size }
       And("Reduce cache  the first level deep")
       CellularAutomaton.flushCache(1)
       expectResult(9) { XYpos.cache.size }

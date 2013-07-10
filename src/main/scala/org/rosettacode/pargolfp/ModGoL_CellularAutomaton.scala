@@ -130,14 +130,14 @@ object CellularAutomaton {
    *
    */
   def nextGenWithHistory(populations: ParSeq[PetriDish],
-    WindowSize: Int,
+    WindowSize: Int = 1,
     rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
     rulestringS: Set[Int] = Set(2, 3)): ParSeq[PetriDish] = {
     /**
      * The next generation is composed of newborns from fecund
      *  neighborhoods and adults on stable neighborhoods.
      */
-    def nextGeneration(population: PetriDish,
+    def tick(population: PetriDish,
       rulestringB: Set[Int], // Rulestrings describe Life-like rules
       rulestringS: Set[Int]): PetriDish = {
       assume(generation != Int.MaxValue, "Generations outnumbered")
@@ -161,9 +161,12 @@ object CellularAutomaton {
     } // def nextGeneration
 
     // Returning new generation in a collection
-    ParSeq(nextGeneration(populations.head, rulestringB, rulestringS)) ++
+    ParSeq(tick(populations.head, rulestringB, rulestringS)) ++
       populations.take(WindowSize - 1)
   } // def nextGenWithHistory(...
+
+  def nextGen(populations: PetriDish) =
+    nextGenWithHistory(ParSeq(populations)).head
 
   /** Detects a stabilization of the number of living cells */
   def isStablePopulation(pops: ParSeq[PetriDish], window: Int): Boolean =

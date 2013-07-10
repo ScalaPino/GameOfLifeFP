@@ -33,8 +33,9 @@ object Main {
       genCounter -= 1
       assume(genCounter > 0,
         f"Looks like an infinite loop ( >${5206}%d) in getPeriods")
-      if (moveTo(newPops.head) == reference ||
-        isStablePopulation(newPops, slidingWindow)) newPops
+      if (isStablePopulation(newPops, slidingWindow)||
+          moveTo(newPops.head) == reference
+        ) newPops
       else inner(newPops /*.seq*/ )
     }
     inner(ParSeq(seed))
@@ -57,7 +58,7 @@ object Main {
 
         println(
           (for { window <- gens.seq }
-            yield if (y == boundery._2.y + 1) { f"Gen ${genCounter += 1; genCounter}%s" }
+            yield if (y == boundery._2.y + 1) { f"Gen ${genCounter += 1; genCounter}%d" }
           else (for (x <- boundery._1.x to boundery._2.x)
             yield if (window.contains(x, y)) '☻' else '·').mkString).mkString(" "))
       }
@@ -65,7 +66,7 @@ object Main {
     }
 
     doPrintlnGenerations(blinker, "Blinker")
-    doPrintlnGenerations(eight, "Eight")
+    doPrintlnGenerations(glider, "Eight")
 
   } // def main
 }
