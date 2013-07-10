@@ -127,7 +127,7 @@ object CellularAutomaton {
   import XYpos.generation
 
   /**
-   *
+   * Capable for various rule strings
    */
   def nextGenWithHistory(populations: Generations,
     WindowSize: Int = 1,
@@ -153,12 +153,12 @@ object CellularAutomaton {
       // Filter all neighbors for desired characteristics
 
       // Criterion of rulestring Birth
-      def reproductions = neighbors.filter(fFilter ⇒ rulestringB contains fFilter._2).keys
+      def newBorn = neighbors.filter(fFilter ⇒ rulestringB contains fFilter._2).keys
       // Criterion of Survivors rulestring 
       def survivors = neighbors.filter(fFilter ⇒ /*test n XYpos then AND previous existence */
         (rulestringS contains fFilter._2) && (population contains fFilter._1)).keySet
-      (survivors ++ reproductions)
-    } // def nextGeneration
+      return survivors ++ newBorn
+    } // def tick(
 
     // Returning new generation in a collection
     ParSeq(tick(populations.head, rulestringB, rulestringS)) ++
@@ -181,21 +181,21 @@ object CellularAutomaton {
    * @param		slidingWindow	The maximal length of returned
    * @return	The serial sequence of generations in time.
    */
-  def getPeriods(seed: PetriDish, slidingWindow: Int) = {
+  def getPeriods(seed: PetriDish, slidingWindow: Int) : Generations= {
     val reference = moveTo(seed)
     var genCounter = MAX_METHUSELAHS_LIFE + slidingWindow
     @tailrec
-    def inner(pops: ParSeq[PetriDish]): ParSeq[PetriDish] = {
+    def inner(pops: Generations): Generations = {
       val newPops = nextGenWithHistory(pops.par, slidingWindow)
       genCounter -= 1
       assume(genCounter > 0,
         s"Looks like an infinite loop ( >$MAX_METHUSELAHS_LIFE%d) in getPeriods")
-      if (isStablePopulation(newPops, slidingWindow) ||
+      if (isStablePopulation(newPops, slidingWindow) || // Test if new gen == seed
         moveTo(newPops.head) == reference) newPops
       else inner(newPops)
     }
     inner(ParSeq(seed))
-  }
+  } // def getPeriods(
 
   /** Determine the envelope of all cells in a generation*/
   // f: collection.parallel.ParSet[XYpos] => XYpos.Rect
