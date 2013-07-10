@@ -162,10 +162,9 @@ object ConwayPatterns {
    *
    */
   implicit def generationFromPattern(pattern: String) = (for {
-    (tupleCharCommaXCharPos, lineNumber) <- pattern.
-      stripMargin.lines.map(_.zipWithIndex).zipWithIndex
-    (char, xCharPos) <- tupleCharCommaXCharPos
-    if char != ' '
-  } yield XYpos(xCharPos, lineNumber)).toSet.par
+    (tupleCharCommaXCharPos, lineNumber) ← pattern.stripMargin.lines.map(
+      _.zipWithIndex).zipWithIndex
+    (char, xCharPos) ← tupleCharCommaXCharPos if char != ' '
+  } yield XYpos(xCharPos, -lineNumber)).toSet.par
 } // object ConwayPatterns
 

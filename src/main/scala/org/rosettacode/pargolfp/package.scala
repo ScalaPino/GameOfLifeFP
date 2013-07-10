@@ -17,4 +17,10 @@ package org.rosettacode
  */
 package object pargolfp {
 
+  type PetriDish = collection.parallel.ParSet[XYpos]
+  type Generations = collection.parallel.ParSeq[PetriDish]
+
+  val MAX_METHUSELAHS_LIFE = 5206
+  val SLIDINGWINDOW = 4
+
 }

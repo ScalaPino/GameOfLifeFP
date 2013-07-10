@@ -34,7 +34,7 @@ class XYpos(val x: Int,
   import XYpos.{ generation, mooreNeighborhood, Rect }
 
   private lazy val mooreNeighborhoodPos =
-    mooreNeighborhood.map(p => this plus (p._1, p._2)) // Avoid implicit conversion
+    mooreNeighborhood.map(p ⇒ this plus (p._1, p._2)) // Avoid implicit conversion
   /**
    * All stored neighbor positions of a cell expressed as a set of XYpos.
    * It must be lazy -computed on demand- to postpone evaluation
@@ -92,8 +92,8 @@ object XYpos {
 
   private def offsets = (-1 to 1) // For neighbor selection
   private val mooreNeighborhood = (for {
-    dx <- offsets.seq
-    dy <- offsets.seq
+    dx ← offsets.seq
+    dy ← offsets.seq
     if dx != 0 || dy != 0
   } yield (dx, dy))
 
@@ -124,15 +124,14 @@ object XYpos {
  */
 object CellularAutomaton {
   import XYpos.generation
-  type PetriDish = collection.parallel.ParSet[XYpos]
 
   /**
    *
    */
-  def nextGenWithHistory(populations: ParSeq[PetriDish],
+  def nextGenWithHistory(populations: Generations,
     WindowSize: Int = 1,
     rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
-    rulestringS: Set[Int] = Set(2, 3)): ParSeq[PetriDish] = {
+    rulestringS: Set[Int] = Set(2, 3)): Generations = {
     /**
      * The next generation is composed of newborns from fecund
      *  neighborhoods and adults on stable neighborhoods.
@@ -148,14 +147,14 @@ object CellularAutomaton {
        */
       val neighbors =
         (population.toList flatMap (_.getMooreNeighborhood)).par groupBy (identity) map {
-          case (cell, coll) => (cell, coll.size)
+          case (cell, coll) ⇒ (cell, coll.size)
         }
       // Filter all neighbors for desired characteristics
 
       // Criterion of rulestring Birth
-      def reproductions = neighbors.filter(fFilter => rulestringB contains fFilter._2).keys
+      def reproductions = neighbors.filter(fFilter ⇒ rulestringB contains fFilter._2).keys
       // Criterion of Survivors rulestring 
-      def survivors = neighbors.filter(fFilter => /*test n XYpos then AND previous existence */
+      def survivors = neighbors.filter(fFilter ⇒ /*test n XYpos then AND previous existence */
         (rulestringS contains fFilter._2) && (population contains fFilter._1)).keySet
       (survivors ++ reproductions)
     } // def nextGeneration
@@ -163,13 +162,13 @@ object CellularAutomaton {
     // Returning new generation in a collection
     ParSeq(tick(populations.head, rulestringB, rulestringS)) ++
       populations.take(WindowSize - 1)
-  } // def nextGenWithHistory(...
+  } // def nextGenWithHistory(…
 
   def nextGen(populations: PetriDish) =
     nextGenWithHistory(ParSeq(populations)).head
 
   /** Detects a stabilization of the number of living cells */
-  def isStablePopulation(pops: ParSeq[PetriDish], window: Int): Boolean =
+  def isStablePopulation(pops: Generations, window: Int): Boolean =
     pops.size >= window && pops.tail.forall(_.size == pops.head.size)
 
   /** Determine the envelope of all cells in a generation*/
@@ -177,9 +176,10 @@ object CellularAutomaton {
   def boundingBox(gen: PetriDish): XYpos.Rect = {
     if (gen.isEmpty)
       throw new UnsupportedOperationException("empty.boundingBox")
-    gen.foldLeft(gen.head extreme gen.head) {
-      (resultingRect, currentPos) => (currentPos extreme resultingRect)
-    }
+    // Aggregate each XYpos to maximum extreme
+    //TODO: Check use of method TrieMap.aggregate
+    gen.foldLeft(gen.head extreme gen.head)(
+      (resultingRect, currentPos) ⇒ (currentPos extreme resultingRect))
   }
 
   /**
@@ -197,7 +197,7 @@ object CellularAutomaton {
   def flushCache(threshold: Int) {
     val absThreshold = generation - threshold
     if (absThreshold <= generation) { // Prevent underflow
-      for (elem <- XYpos.cache)
+      for (elem ← XYpos.cache.seq)
         if (absThreshold >= elem._2.timestamp) XYpos.cache -= elem._1
     }
   }

@@ -10,6 +10,8 @@ class M_GoL_CellularAutomatonSpecTest extends FunSpec with GivenWhenThen {
   private val (x1, y1) = (x0 + 1, y0)
   private val (x2, y2) = (x1 + 1, y0)
 
+  XYpos.cache.clear
+
   describe("A Cell") {
     it("has is equality function") {
       Given(f"a XYpos($x0%d, $y0%d)")

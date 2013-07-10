@@ -2,7 +2,7 @@ package org.rosettacode
 package pargolfp
 
 import CellularAutomaton.{
-  PetriDish,
+  //  PetriDish,
   isStablePopulation,
   moveTo,
   nextGenWithHistory
@@ -16,6 +16,8 @@ import org.scalatest._
 
 class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen {
   import ModGoL_PatternsSpecTest._
+
+  XYpos.cache.clear
 
   describe("A Conway pattern") {
     it("has periodicity") {
@@ -55,12 +57,12 @@ object ModGoL_PatternsSpecTest {
    *  is equal to expected value.
    */
   def testHarness(patterns: String,
-    test: (PetriDish, Int, Int) => Boolean,
+    test: (PetriDish, Int, Int) ⇒ Boolean,
     msg: String) =
     {
       var testmsg = msg
       assert(patternCollection.get(patterns).get forall {
-        case (menuName, pattern, period, popLeft) => {
+        case (menuName, pattern, period, popLeft) ⇒ {
           testmsg = f"$menuName%s: $msg%s"
           test(moveTo(pattern), period, popLeft)
         }
@@ -89,13 +91,5 @@ object ModGoL_PatternsSpecTest {
     }
     inner(ParSeq(seed), expectedPeriodeCount + slidingWindowSize - 2)
   }
-
-  //  def getUnstableGenerations(first: CellsAlive, expectedPeriodeCount: Int) = {
-  //      // Return an iterator for the generations of a starting pattern
-  //  def conwayIterator(first: CellsAlive) = Iterator.iterate(first)(nextGeneration(_))
-  //
-  //    (conwayIterator(first) take (expectedPeriodeCount + WINDOWSIZE) map (_.size) sliding WINDOWSIZE
-  //      map (_.distinct.length) takeWhile (_ > 1) length) == expectedPeriodeCount
-  //  } // def getUnstableGenerations
 
 } // object ModGoL_PatternsSpecTest
