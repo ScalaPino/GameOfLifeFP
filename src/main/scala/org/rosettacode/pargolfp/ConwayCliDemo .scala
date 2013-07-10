@@ -15,29 +15,18 @@ import scala.collection.parallel.ParSet
 import scala.annotation.tailrec
 import CellularAutomaton.{
   boundingBox,
+  getPeriods,
   isStablePopulation,
   moveTo,
   nextGenWithHistory
 }
 
-object GoL_FP {
+/**
+ * The "main" object
+ */
+object ConwayCliDemo {
+  /** Overrides the global constant */
   final val SLIDINGWINDOW = 9
-
-  def getPeriods(seed: PetriDish, slidingWindow: Int) = {
-    val reference = moveTo(seed)
-    var genCounter = MAX_METHUSELAHS_LIFE + slidingWindow
-    @tailrec
-    def inner(pops: ParSeq[PetriDish]): ParSeq[PetriDish] = {
-      val newPops = nextGenWithHistory(pops.par, slidingWindow)
-      genCounter -= 1
-      assume(genCounter > 0,
-        s"Looks like an infinite loop ( >$MAX_METHUSELAHS_LIFE%d) in getPeriods")
-      if (isStablePopulation(newPops, slidingWindow) ||
-        moveTo(newPops.head) == reference) newPops
-      else inner(newPops)
-    }
-    inner(ParSeq(seed))
-  }
 
   def main(args: Array[String]): Unit = {
 
@@ -45,23 +34,34 @@ object GoL_FP {
       friendlyName: String = "Pattern",
       slidingWindow: Int = SLIDINGWINDOW) {
 
-      println(s"\nCompute ${friendlyName} generations started")
-
-      val gens = getPeriods(patternName, slidingWindow).reverse
+      val gens: Generations = getPeriods(patternName, slidingWindow).reverse
       val boundery = boundingBox(gens.flatten.toSet)
       val frame = ((boundery._1.x - 1, boundery._1.y - 1),
         (boundery._2.x + 1, boundery._2.y + 1))
       val frameWidth = frame._2.x - frame._1.x + 1
       var genCounter = -1
 
-      for (y ← frame._2.y + 1 to frame._1.y by -1) { // Top to bottom Y
-        println((for { window ← gens.seq } // Do first PetriDish to last
-          yield if (y == frame._2.y + 1) s"Gen ${genCounter += 1; genCounter}".
-          padTo(frameWidth, " ").mkString // Top line gives gen number
-        else (for (x ← frame._1.x to frame._2.x) // Per dish from left to right X
-          yield if (window.contains(x, y)) '☻' else '·').mkString).
-          mkString(" ")) // Intercolumn separator
-      }
+      def doMatrixis(gens: Generations) {
+        def toRow(y: Int) = {
+          def toChar(window: PetriDish, point: Tuple2[Int, Int]) = {
+            if (window.contains(point)) '☻' else '·'
+          } // def toChar(…
+
+          // Begin toRow(…
+          (for { window: PetriDish ← gens.seq } yield // Do first PetriDish to last
+          if (y == frame._2.y + 1) s"Gen ${genCounter += 1; genCounter}".
+            padTo(frameWidth, " ").mkString // Top line gives gen number
+          else (for (x ← frame._1.x to frame._2.x) // Per dish from left to right X
+            yield toChar(window, (x, y))).mkString).mkString(" ")
+        } // def toRow(…
+
+        // Begin toMatrixis(…
+        for (y ← frame._2.y + 1 to frame._1.y by -1) println(toRow(y))
+      } // def toMatrixis(…
+
+      // Begin doPrintlnGenerations(…
+      println(s"\nCompute ${friendlyName} generations started")
+      doMatrixis(gens)
       println(s"${genCounter} gen's $friendlyName")
     } // doPrintlnGenerations(…
 

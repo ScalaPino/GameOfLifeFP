@@ -1,13 +1,14 @@
 package org.rosettacode
 package pargolfp
 
+import annotation.tailrec
 import language.{ implicitConversions, postfixOps }
 import collection.parallel.ParSeq
 import collection.concurrent.TrieMap
 
 /**
  *
- * Atomic virtual position contains own x,y coordinate and neighbors positions.
+ * Atomic virtual position contains its own x,y coordinate and neighbors positions.
  * If included in the Lives set its "alive".
  *
  * @version		0.1 2013-07-01
@@ -23,9 +24,9 @@ import collection.concurrent.TrieMap
  * @constructor	Create a new Thing instance from a Wotsit. Upon creating x,y
  * 				coordinates will be checked for uniqueness. See [[XYpos$]]
  *
- * @param		x x part of coordinate pair
- * @param		y y part of coordinate pair
- * @param		timestamp Params
+ * @param		x			x part of coordinate pair
+ * @param		y			y part of coordinate pair
+ * @param		timestamp	Params
  *
  */
 class XYpos(val x: Int,
@@ -170,6 +171,31 @@ object CellularAutomaton {
   /** Detects a stabilization of the number of living cells */
   def isStablePopulation(pops: Generations, window: Int): Boolean =
     pops.size >= window && pops.tail.forall(_.size == pops.head.size)
+
+  /**
+   * Generate a serie of PetriDishes, each is a successor of the previous.
+   * Appending is stopped if within the sliding windows the same configuration
+   * of living cells reappears. Otherwise it is stopped if the sliding is filled.
+   *
+   * @param		seed			The initial living cells configuration.
+   * @param		slidingWindow	The maximal length of returned
+   * @return	The serial sequence of generations in time.
+   */
+  def getPeriods(seed: PetriDish, slidingWindow: Int) = {
+    val reference = moveTo(seed)
+    var genCounter = MAX_METHUSELAHS_LIFE + slidingWindow
+    @tailrec
+    def inner(pops: ParSeq[PetriDish]): ParSeq[PetriDish] = {
+      val newPops = nextGenWithHistory(pops.par, slidingWindow)
+      genCounter -= 1
+      assume(genCounter > 0,
+        s"Looks like an infinite loop ( >$MAX_METHUSELAHS_LIFE%d) in getPeriods")
+      if (isStablePopulation(newPops, slidingWindow) ||
+        moveTo(newPops.head) == reference) newPops
+      else inner(newPops)
+    }
+    inner(ParSeq(seed))
+  }
 
   /** Determine the envelope of all cells in a generation*/
   // f: collection.parallel.ParSet[XYpos] => XYpos.Rect
