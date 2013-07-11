@@ -153,10 +153,11 @@ object CellularAutomaton {
       // Filter all neighbors for desired characteristics
 
       // Criterion of rulestring Birth
-      def newBorn = neighbors.filter(fFilter ⇒ rulestringB contains fFilter._2).keys
+      def newBorn = neighbors.filter(fFilter ⇒ rulestringB contains fFilter._2).keySet
       // Criterion of Survivors rulestring 
-      def survivors = neighbors.filter(fFilter ⇒ /*test n XYpos then AND previous existence */
-        (rulestringS contains fFilter._2) && (population contains fFilter._1)).keySet
+//      def survivors = neighbors.filter(fFilter ⇒ /*test n XYpos then AND previous existence */
+//        (rulestringS contains fFilter._2) && (population contains fFilter._1)).keySet
+      def survivors =population.filter(sieve => rulestringS contains neighbors.getOrElse(sieve, 0))
       return survivors ++ newBorn
     } // def tick(
 
