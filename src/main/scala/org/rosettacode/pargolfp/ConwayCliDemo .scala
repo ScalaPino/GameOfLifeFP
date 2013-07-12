@@ -14,13 +14,7 @@ import ConwayPatterns._
 import XYpos._
 import scala.collection.parallel.ParSet
 import scala.annotation.tailrec
-import CellularAutomaton.{
-  boundingBox,
-  getPeriods,
-  isStablePopulation,
-  moveTo,
-  nextGenWithHistory
-}
+import CellularAutomaton.{ boundingBox, getPeriods, nextGenWithHistory }
 
 /**
  * The "main" object
@@ -45,10 +39,10 @@ object ConwayCliDemo {
       def doGenerations(gens: Generations) {
         def toRow(y: Int) = {
           @tailrec
-          def toRowHelper(y: Int,
-                          previous: PetriDish,
-                          actual: Generations,
-                          ret: Seq[String]): Seq[String] =
+          def toRowHelper(
+            previous: PetriDish,
+            actual: Generations,
+            ret: Seq[String]): Seq[String] =
             {
               def toChar(point: Tuple2[Int, Int]) = {
                 (previous(point), actual.head(point)) match {
@@ -61,7 +55,7 @@ object ConwayCliDemo {
 
               // Begin recursive inner
               if (actual != collection.parallel.ParSeq[PetriDish]())
-                toRowHelper(y,
+                toRowHelper(
                   actual.head,
                   actual.tail,
                   ret ++ Seq((if (y == frame._2.y + 1)
@@ -73,7 +67,7 @@ object ConwayCliDemo {
             }
 
           // Begin toRow(… 
-          toRowHelper(y, ParSet[XYpos](), gens, Seq()).mkString(" ")
+          toRowHelper(ParSet[XYpos](), gens, Seq()).mkString(" ")
         } // def toRow(…
 
         // Begin doGenerations(…
