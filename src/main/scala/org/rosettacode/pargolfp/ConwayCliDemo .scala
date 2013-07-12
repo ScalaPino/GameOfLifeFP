@@ -8,13 +8,11 @@
 package org.rosettacode
 package pargolfp
 
-import annotation.tailrec
-import scala.collection.parallel.ParSeq
+import CellularAutomaton.{ boundingBox, getPeriods }
 import ConwayPatterns._
-import XYpos._
-import scala.collection.parallel.ParSet
-import scala.annotation.tailrec
-import CellularAutomaton.{ boundingBox, getPeriods, nextGenWithHistory }
+import XYpos.{ Rect, tupleToXYpos }
+
+import annotation.tailrec
 
 /**
  * The "main" object
@@ -67,7 +65,7 @@ object ConwayCliDemo {
             }
 
           // Begin toRow(… 
-          toRowHelper(ParSet[XYpos](), gens, Seq()).mkString(" ")
+          toRowHelper(collection.parallel.ParSet(), gens, Seq()).mkString(" ")
         } // def toRow(…
 
         // Begin doGenerations(…

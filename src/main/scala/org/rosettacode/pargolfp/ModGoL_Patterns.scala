@@ -1,9 +1,6 @@
 package org.rosettacode
 package pargolfp
 
-import collection.parallel.ParSet
-import language.implicitConversions
-
 /**
  * The object contains a collection of Conway patterns
  *
