@@ -57,8 +57,8 @@ object ModGoL_PatternsSpecTest {
    *  is equal to expected value.
    */
   def testHarness(patterns: String,
-    test: (PetriDish, Int, Int) ⇒ Boolean,
-    msg: String) =
+                  test: (PetriDish, Int, Int) ⇒ Boolean,
+                  msg: String) =
     {
       var testmsg = msg
       assert(patternCollection.get(patterns).get forall {
@@ -75,8 +75,8 @@ object ModGoL_PatternsSpecTest {
    * population size.
    */
   def testLifeSpan(seed: PetriDish,
-    expectedPeriodeCount: Int,
-    expectedPopLeft: Int) = {
+                   expectedPeriodeCount: Int,
+                   expectedPopLeft: Int) = {
     val slidingWindowSize = 4
     @tailrec
     def inner(pops: ParSeq[PetriDish], expPerCountDown: Int): Boolean = {

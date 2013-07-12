@@ -30,12 +30,17 @@ import collection.concurrent.TrieMap
  *
  */
 class XYpos(val x: Int,
-  val y: Int,
-  var timestamp: Int = XYpos.generation) {
+            val y: Int,
+            var timestamp: Int = XYpos.generation) {
   import XYpos.{ generation, mooreNeighborhood, Rect }
 
+  /**
+   * Private member, see getMooreNeighborhood
+   *  Filled with all the 8 XYpos as coordinates around the cell
+   */
   private lazy val mooreNeighborhoodPos =
     mooreNeighborhood.map(p ⇒ this plus (p._1, p._2)) // Avoid implicit conversion
+
   /**
    * All stored neighbor positions of a cell expressed as a set of XYpos.
    * It must be lazy -computed on demand- to postpone evaluation
@@ -58,7 +63,7 @@ class XYpos(val x: Int,
 
   /**
    * Get the maximal respectively minimal numbers of either coordinate.
-   * Resulting point is mostly distant of both points!
+   * Resulting point is could be distant of both points!
    */
   private def max(that: XYpos) = XYpos(this.x max that.x, this.y max that.y)
   private def min(that: XYpos) = XYpos(this.x min that.x, this.y min that.y)
@@ -91,11 +96,10 @@ object XYpos {
 
   var generation = Int.MinValue
 
-  private def offsets = (-1 to 1) // For neighbor selection
+  // Init the static variables
+  private def offsets = (-1 to 1).seq // For neighbor selection
   private val mooreNeighborhood = (for {
-    dx ← offsets.seq
-    dy ← offsets.seq
-    if dx != 0 || dy != 0
+    dx ← offsets; dy ← offsets; if dx != 0 || dy != 0
   } yield (dx, dy))
 
   /**
@@ -114,7 +118,7 @@ object XYpos {
     { cache.getOrElseUpdate((x, y), new XYpos(x, y)) }
 
   /**A Tuple2[Int, Int] can be used as a XYpos through this implicit conversion.*/
-  implicit def tupleToXYpos(t: (Int, Int)): XYpos = apply(t._1, t._2)
+  implicit def tupleToXYpos(tup: (Int, Int)): XYpos = apply(tup._1, tup._2)
 } // object XYpos
 
 /////////////////////////////////////////////////////////////////////////////
@@ -130,34 +134,37 @@ object CellularAutomaton {
    * Capable for various rule strings
    */
   def nextGenWithHistory(populations: Generations,
-    WindowSize: Int = 1,
-    rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
-    rulestringS: Set[Int] = Set(2, 3)): Generations = {
+                         WindowSize: Int,
+                         rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
+                         rulestringS: Set[Int] = Set(2, 3)): Generations = {
+
     /**
+     * This is the Game of Live engine
+     *
      * The next generation is composed of newborns from fecund
      *  neighborhoods and adults on stable neighborhoods.
      */
     def tick(population: PetriDish,
-      rulestringB: Set[Int], // Rulestrings describe Life-like rules
-      rulestringS: Set[Int]): PetriDish = {
+             rulestringB: Set[Int], // Rulestrings describe Life-like rules
+             rulestringS: Set[Int]): PetriDish = {
       assume(generation != Int.MaxValue, "Generations outnumbered")
       generation += 1
 
-      /* A map containing all coordinates that are neighbors of XYpos which
-       * are alive, together with the number of XYpos it is neighbor of.
+      /* A Map containing only ''coordinates'' that are neighbors of XYpos which
+       * are alive, together with the ''number'' of XYpos it is neighbor of.
        */
       val neighbors =
-        (population.toList flatMap (_.getMooreNeighborhood)).par groupBy (identity) map {
+        (population.toList.flatMap(_.getMooreNeighborhood)).par.groupBy(identity).map {
           case (cell, coll) ⇒ (cell, coll.size)
         }
       // Filter all neighbors for desired characteristics
 
       // Criterion of rulestring Birth
-      def newBorn = neighbors.filter(fFilter ⇒ rulestringB contains fFilter._2).keySet
+      def newBorn = neighbors.filter(fFilter ⇒ rulestringB contains fFilter._2).
+        keySet
       // Criterion of Survivors rulestring 
-//      def survivors = neighbors.filter(fFilter ⇒ /*test n XYpos then AND previous existence */
-//        (rulestringS contains fFilter._2) && (population contains fFilter._1)).keySet
-      def survivors =population.filter(sieve => rulestringS contains neighbors.getOrElse(sieve, 0))
+      def survivors = population.filter(sieve ⇒ rulestringS contains neighbors.
+        getOrElse(sieve, 0))
       return survivors ++ newBorn
     } // def tick(
 
@@ -166,8 +173,9 @@ object CellularAutomaton {
       populations.take(WindowSize - 1)
   } // def nextGenWithHistory(…
 
+  /** Generates 1 */
   def nextGen(populations: PetriDish) =
-    nextGenWithHistory(ParSeq(populations)).head
+    nextGenWithHistory(ParSeq(populations), 1).head
 
   /** Detects a stabilization of the number of living cells */
   def isStablePopulation(pops: Generations, window: Int): Boolean =
@@ -182,7 +190,7 @@ object CellularAutomaton {
    * @param		slidingWindow	The maximal length of returned
    * @return	The serial sequence of generations in time.
    */
-  def getPeriods(seed: PetriDish, slidingWindow: Int) : Generations= {
+  def getPeriods(seed: PetriDish, slidingWindow: Int): Generations = {
     val reference = moveTo(seed)
     var genCounter = MAX_METHUSELAHS_LIFE + slidingWindow
     @tailrec
