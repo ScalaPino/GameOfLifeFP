@@ -1,6 +1,7 @@
 package org.rosettacode
 package pargolfp
 
+import language.implicitConversions
 /**
  *
  * Atomic virtual position contains its own x,y coordinate and neighbors positions.

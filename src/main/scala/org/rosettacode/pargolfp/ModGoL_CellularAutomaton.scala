@@ -22,49 +22,19 @@ object CellularAutomaton {
   /**
    * Capable for various rule strings
    */
-  def nextGenWithHistory(populations: Generations,
-                         WindowSize: Int,
-                         rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
-                         rulestringS: Set[Int] = Set(2, 3)): Generations = {
-
-    /**
-     * This is the Game of Live engine
-     *
-     * The next generation is composed of newborns from fecund
-     *  neighborhoods and adults on stable neighborhoods.
-     */
-    def tick(population: PetriDish,
-             rulestringB: Set[Int], // Rulestrings describe Life-like rules
-             rulestringS: Set[Int]): PetriDish = {
-      assume(generation != Int.MaxValue, "Generations outnumbered")
-      generation += 1
-
-      /* A Map containing only ''coordinates'' that are neighbors of XYpos which
-       * are alive, together with the ''number'' of XYpos it is neighbor of.
-       */
-      val neighbors =
-        (population.toList.flatMap(_.getMooreNeighborhood)).par.groupBy(identity).map {
-          case (cell, coll) ⇒ (cell, coll.size)
-        }
-      // Filter all neighbors for desired characteristics
-
-      // Criterion of rulestring Birth
-      def newBorn = neighbors.filter(fFilter ⇒ rulestringB contains fFilter._2).
-        keySet
-      // Criterion of Survivors rulestring 
-      def survivors = population.filter(sieve ⇒ rulestringS contains neighbors.
-        getOrElse(sieve, 0))
-      return survivors ++ newBorn
-    } // def tick(
-
-    // Returning new generation in a collection
-    ParSeq(tick(populations.head, rulestringB, rulestringS)) ++
-      populations.take(WindowSize - 1)
-  } // def nextGenWithHistory(…
+//  def nextGenWithHistory(populations: ParSeq[PetriDish],
+//                         WindowSize: Int,
+//                         rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
+//                         rulestringS: Set[Int] = Set(2, 3)): Generations = {
+//
+//    // Returning new generation in a collection
+//    ParSeq(tick(populations.head, rulestringB, rulestringS)) ++
+//      populations.take(WindowSize - 1)
+//  } // def nextGenWithHistory(…
 
   /** Generates 1 */
-  def nextGen(populations: PetriDish) =
-    nextGenWithHistory(ParSeq(populations), 1).head
+  def nextGen(population: PetriDish) =
+    getLifeStream(population, 1)
 
   /** Detects a stabilization of the number of living cells */
   def isStablePopulation(pops: Generations, window: Int): Boolean =
@@ -79,7 +49,7 @@ object CellularAutomaton {
    * @param		slidingWindow	The maximal length of returned
    * @return	The serial sequence of generations in time.
    */
-  def getPeriods(seed: PetriDish, slidingWindow: Int): Generations = {
+  /*def getPeriods(seed: PetriDish, slidingWindow: Int): Generations = {
     val reference = moveTo(seed)
     var genCounter = MAX_METHUSELAHS_LIFE + slidingWindow
     @tailrec
@@ -87,12 +57,66 @@ object CellularAutomaton {
       val newPops = nextGenWithHistory(pops.par, slidingWindow)
       genCounter -= 1
       assume(genCounter > 0,
-        s"Looks like an infinite loop ( >$MAX_METHUSELAHS_LIFE%d) in getPeriods")
+        s"Looks like an infinite loop ( >$MAX_METHUSELAHS_LIFE) in getPeriods")
       if (isStablePopulation(newPops, slidingWindow) || // Test if new gen == seed
         moveTo(newPops.head) == reference) newPops
       else inner(newPops)
     }
     inner(ParSeq(seed))
+  } // def getPeriods(
+*/
+  /**
+   * This is the Game of Live engine
+   *
+   * The next generation is composed of newborns from fecund
+   *  neighborhoods and adults on stable neighborhoods.
+   */
+  def tick(population: PetriDish,
+           rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
+           rulestringS: Set[Int] = Set(2, 3)): PetriDish = {
+    assume(generation != Int.MaxValue, "Generations outnumbered")
+    generation += 1
+
+    /* A Map containing only ''coordinates'' that are neighbors of XYpos which
+       * are alive, together with the ''number'' of XYpos it is neighbor of.
+       */
+    val neighbors =
+      (population.toList.flatMap(_.getMooreNeighborhood)).par.groupBy(identity).map {
+        case (cell, coll) ⇒ (cell, coll.size)
+      }
+    // Filter all neighbors for desired characteristics
+
+    // Criterion of rulestring Birth
+    def newBorn = neighbors.filter(fFilter ⇒ rulestringB contains fFilter._2).
+      keySet
+    // Criterion of Survivors rulestring 
+    def survivors = population.filter(sieve ⇒ rulestringS contains neighbors.
+      getOrElse(sieve, 0))
+    return survivors ++ newBorn
+  } // def tick(
+
+  /**
+   * Generate a serie of PetriDishes, each is a successor of the previous.
+   * Appending is stopped if within the sliding windows the same configuration
+   * of living cells reappears. Otherwise it is stopped if the sliding is filled.
+   *
+   * @param		seed			The initial living cells configuration.
+   * @param		slidingWindow	The maximal length of returned
+   * @return	The serial sequence of generations in time.
+   */
+  def getLifeStream(seed: PetriDish, slidingWindow: Int): Stream[PetriDish] = {
+    val reference = moveTo(seed)
+    var genCounter = MAX_METHUSELAHS_LIFE + slidingWindow
+
+    def inner(genCounter: Int, pop: PetriDish): Stream[PetriDish] = {
+      assume(genCounter > 0,
+        s"Looks like an infinite loop ( >$MAX_METHUSELAHS_LIFE) in stream")
+        //TODO: Crimp the stream to slidingwindow
+      Stream.cons(pop,
+        if (pop.isEmpty || moveTo(pop) == reference) Stream.empty
+        else inner(genCounter - 1, tick(pop)))
+    }
+    Stream.cons(seed, inner(MAX_METHUSELAHS_LIFE + slidingWindow, tick(seed)))
   } // def getPeriods(
 
   /** Determine the envelope of all cells in a generation*/

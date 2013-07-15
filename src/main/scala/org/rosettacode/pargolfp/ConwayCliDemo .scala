@@ -8,9 +8,11 @@
 package org.rosettacode
 package pargolfp
 
-import CellularAutomaton.{ boundingBox, getPeriods }
+import CellularAutomaton.{ boundingBox, getLifeStream }
 import ConwayPatterns._
 import XYpos.{ Rect, tupleToXYpos }
+
+import collection.parallel.immutable._
 
 import annotation.tailrec
 
@@ -26,20 +28,21 @@ object ConwayCliDemo {
     def doPrintlnGenerations(patternName: String,
                              friendlyName: String = "Pattern",
                              slidingWindow: Int = SLIDINGWINDOW) {
-      val gens: Generations = getPeriods(patternName, slidingWindow).reverse
-      val boundery: Rect = boundingBox(gens.flatten.toSet)
+      val gens:collection.parallel.immutable.ParSeq[org.rosettacode.pargolfp
+ .PetriDish] = getLifeStream(patternName, slidingWindow).toSeq.par
+      val boundery: Rect = boundingBox(gens.flatten.toSet.par)
       // Widen by surroundings
       val frame = ((boundery._1.x - 1, boundery._1.y - 1),
         (boundery._2.x + 1, boundery._2.y + 1))
       val frameWidth = frame._2.x - frame._1.x + 1
       var genCounter = -1
 
-      def doGenerations(gens: Generations) {
+      def doGenerations(gens :ParSeq[PetriDish] ) {
         def toRow(y: Int) = {
           @tailrec
           def toRowHelper(
             previous: PetriDish,
-            actual: Generations,
+            actual: ParSeq[PetriDish],
             ret: Seq[String]): Seq[String] =
             {
               def toChar(point: Tuple2[Int, Int]) = {

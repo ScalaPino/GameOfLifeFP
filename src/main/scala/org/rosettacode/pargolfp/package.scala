@@ -19,7 +19,7 @@ package object pargolfp {
   /** Abstract and imaginary habitat for the living cells*/
   type PetriDish = collection.parallel.ParSet[XYpos]
   /** Sequence of consecutive generations*/
-  type Generations = collection.parallel.ParSeq[PetriDish]
+  type Generations = /*collection.parallel.ParSeq*/Stream[PetriDish]
   /**
    * Limitation of maximal number of iterations. 5206 is the maximum number of
    * generations the Acorn methuselah becomes stable.
