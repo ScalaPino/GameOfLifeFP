@@ -28,7 +28,7 @@ import language.implicitConversions
 class XYpos(val x: Int,
             val y: Int,
             var timestamp: Int = XYpos.generation) {
-  import XYpos.{ generation, mooreNeighborhood, Rect }
+  import XYpos.{ generation, mooreNeighborhood }
 
   /**
    * Private member, see getMooreNeighborhood
@@ -88,7 +88,6 @@ class XYpos(val x: Int,
  *
  */
 object XYpos {
-  type Rect = (XYpos, XYpos)
 
   var generation = Int.MinValue
 

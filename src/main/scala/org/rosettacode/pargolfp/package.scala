@@ -16,10 +16,14 @@ package org.rosettacode
  * of functional programming in Scala with its idiomatics.
  */
 package object pargolfp {
+  // Rectangular area of cells is XYpos
+  type Rect = (XYpos, XYpos)
+
   /** Abstract and imaginary habitat for the living cells*/
   type PetriDish = collection.parallel.ParSet[XYpos]
   /** Sequence of consecutive generations*/
-  type Generations = /*collection.parallel.ParSeq*/Stream[PetriDish]
+  type GenerationStream = Stream[PetriDish]
+  type GenerationSeq = collection.parallel.ParSeq[PetriDish]
   /**
    * Limitation of maximal number of iterations. 5206 is the maximum number of
    * generations the Acorn methuselah becomes stable.

@@ -9,7 +9,6 @@
 package org.rosettacode
 package pargolfp
 
-import collection.parallel.ParSeq
 import annotation.tailrec
 
 /**
@@ -19,52 +18,10 @@ import annotation.tailrec
 object CellularAutomaton {
   import XYpos.generation
 
-  /**
-   * Capable for various rule strings
-   */
-//  def nextGenWithHistory(populations: ParSeq[PetriDish],
-//                         WindowSize: Int,
-//                         rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
-//                         rulestringS: Set[Int] = Set(2, 3)): Generations = {
-//
-//    // Returning new generation in a collection
-//    ParSeq(tick(populations.head, rulestringB, rulestringS)) ++
-//      populations.take(WindowSize - 1)
-//  } // def nextGenWithHistory(…
-
-  /** Generates 1 */
-  def nextGen(population: PetriDish) =
-    getLifeStream(population, 1)
-
   /** Detects a stabilization of the number of living cells */
-  def isStablePopulation(pops: Generations, window: Int): Boolean =
+  def isStablePopulation(pops: GenerationStream, window: Int): Boolean =
     pops.size >= window && pops.tail.forall(_.size == pops.head.size)
 
-  /**
-   * Generate a serie of PetriDishes, each is a successor of the previous.
-   * Appending is stopped if within the sliding windows the same configuration
-   * of living cells reappears. Otherwise it is stopped if the sliding is filled.
-   *
-   * @param		seed			The initial living cells configuration.
-   * @param		slidingWindow	The maximal length of returned
-   * @return	The serial sequence of generations in time.
-   */
-  /*def getPeriods(seed: PetriDish, slidingWindow: Int): Generations = {
-    val reference = moveTo(seed)
-    var genCounter = MAX_METHUSELAHS_LIFE + slidingWindow
-    @tailrec
-    def inner(pops: Generations): Generations = {
-      val newPops = nextGenWithHistory(pops.par, slidingWindow)
-      genCounter -= 1
-      assume(genCounter > 0,
-        s"Looks like an infinite loop ( >$MAX_METHUSELAHS_LIFE) in getPeriods")
-      if (isStablePopulation(newPops, slidingWindow) || // Test if new gen == seed
-        moveTo(newPops.head) == reference) newPops
-      else inner(newPops)
-    }
-    inner(ParSeq(seed))
-  } // def getPeriods(
-*/
   /**
    * This is the Game of Live engine
    *
@@ -93,35 +50,31 @@ object CellularAutomaton {
     def survivors = population.filter(sieve ⇒ rulestringS contains neighbors.
       getOrElse(sieve, 0))
     return survivors ++ newBorn
-  } // def tick(
+  } // def tick(…
 
   /**
-   * Generate a serie of PetriDishes, each is a successor of the previous.
+   * Generate a stream of PetriDishes, each is a successor of the previous.
    * Appending is stopped if within the sliding windows the same configuration
-   * of living cells reappears. Otherwise it is stopped if the sliding is filled.
+   * of living cells reappears.
    *
    * @param		seed			The initial living cells configuration.
    * @param		slidingWindow	The maximal length of returned
    * @return	The serial sequence of generations in time.
    */
-  def getLifeStream(seed: PetriDish, slidingWindow: Int): Stream[PetriDish] = {
+  def getLifeStream(seed: PetriDish): GenerationStream = {
     val reference = moveTo(seed)
-    var genCounter = MAX_METHUSELAHS_LIFE + slidingWindow
 
-    def inner(genCounter: Int, pop: PetriDish): Stream[PetriDish] = {
-      assume(genCounter > 0,
-        s"Looks like an infinite loop ( >$MAX_METHUSELAHS_LIFE) in stream")
-        //TODO: Crimp the stream to slidingwindow
-      Stream.cons(pop,
-        if (pop.isEmpty || moveTo(pop) == reference) Stream.empty
-        else inner(genCounter - 1, tick(pop)))
+    def inner(pop: PetriDish): GenerationStream = {
+      // Add last generation in the stream and check for end condition.
+      pop #:: (if (pop.isEmpty || moveTo(pop) == reference) Stream.empty
+      else inner(tick(pop)))
     }
-    Stream.cons(seed, inner(MAX_METHUSELAHS_LIFE + slidingWindow, tick(seed)))
-  } // def getPeriods(
+    // Begin of getLifeStream
+    seed #:: inner(tick(seed))
+  } // def getLifeStream(…
 
   /** Determine the envelope of all cells in a generation*/
-  // f: collection.parallel.ParSet[XYpos] => XYpos.Rect
-  def boundingBox(gen: PetriDish): XYpos.Rect = {
+  def boundingBox(gen: PetriDish): Rect = {
     if (gen.isEmpty)
       throw new UnsupportedOperationException("empty.boundingBox")
     // Aggregate each XYpos to maximum extreme
@@ -139,7 +92,7 @@ object CellularAutomaton {
       extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,
       extremes._1.y + (extremes._2.y - extremes._1.y) / 2 - center.y)
     gen.map(_ - offset)
-  } // def moveTo
+  } // def moveTo(…
 
   /** Remove unused XYpos from the cache while keeping given generations.*/
   def flushCache(threshold: Int) {
