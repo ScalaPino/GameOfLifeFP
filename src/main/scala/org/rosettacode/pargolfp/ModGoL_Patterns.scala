@@ -39,43 +39,43 @@ object ConwayPatterns {
   val block = """|
                  | XX
                  | XX
-                 |"""
+                 |""".stripMargin
   /** Still Live pattern: Beehive */
   val beehive = """|
                    |  XX
                    | X  X
                    |  XX
-                   |"""
+                   |""".stripMargin
   /** Still Live pattern: Loaf */
   val loaf = """|
                 |  XX
                 | X  X
                 |  X X
                 |   X
-                |"""
+                |""".stripMargin
   /** Still Live pattern: Boat */
   val boat = """|
                 | XX
                 | X X
                 |  X
-                |"""
+                |""".stripMargin
 
   /** Oscillator pattern: Blinker */
-  val blinker = """| XXX"""
+  val blinker = """| XXX""".stripMargin
   /** Oscillator pattern: Toad */
   val toad = """|
                 |
                 |  XXX
                 | XXX
                 |
-                |"""
+                |""".stripMargin
   /** Oscillator pattern: Beacon */
   val beacon = """|
                   | XX
                   | XX
                   |   XX
                   |   XX
-                  |"""
+                  |""".stripMargin
   /** Oscillator pattern: Pulsar */
   val pulsar = """|
                   |
@@ -93,7 +93,7 @@ object ConwayPatterns {
                   |
                   |    XXX   XXX
                   |
-                  |"""
+                  |""".stripMargin
   /** Oscillator pattern: Eight */
   val eight = """|
                  |XXX
@@ -102,14 +102,14 @@ object ConwayPatterns {
                  |   XXX
                  |   XXX
                  |   XXX
-                 |"""
+                 |""".stripMargin
 
   /** Spaceship pattern: Glider */
   val glider = """|
                   |   X
                   | X X
                   |  XX
-                  |"""
+                  |""".stripMargin
   /** Spaceship pattern: Lightweight Spaceship */
   val lwss = """|
                 |
@@ -117,7 +117,7 @@ object ConwayPatterns {
                 | X   X
                 |     X
                 | X  X
-                |"""
+                |""".stripMargin
   /** Spaceship pattern: block */
 
   /** Methuselah pattern: Die hard */
@@ -125,21 +125,21 @@ object ConwayPatterns {
                    |       X
                    | XX
                    |  X   XXX
-                   |"""
+                   |""".stripMargin
 
   /** Methuselah pattern: Acorn */
   val acorn = """|
                  |  X
                  |    X
                  | XX  XXX
-                 |"""
+                 |""".stripMargin
 
   /** Methuselah pattern: "R" pentomino */
   val rPentomino = """|
                       | XX
                       |  XX
                       |  X
-                      |"""
+                      |""".stripMargin
 
   /** Guns pattern: Gosper Gun */
   val gosperGun = """|
@@ -152,7 +152,7 @@ object ConwayPatterns {
                      |          X     X       X
                      |           X   X
                      |            XX
-                     |"""
+                     |""".stripMargin
 
   // Helper methods
   // Enable constructing sets of coordinates from string patterns.
