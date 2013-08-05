@@ -11,26 +11,35 @@ package pargolfp
 import annotation.tailrec
 import collection.parallel.ParSeq
 
-import CellularAutomaton.{ boundingBox, getLifeStream }
+import CellularAutomaton.{ boundingBox, getLimitedLifeSeq }
 import ConwayPatterns._
 import XYpos.tupleToXYpos
 
-/**
- * The "main" object
+/** @version		0.3 2013-08-01
+ *
+ *  @author		Frans W. van den Berg
+ *
+ *  The "main" object
  */
-object ConwayCliDemo {
+object ConwayConsoleDemo {
   /** Overrides the global constant */
   final val SLIDINGWINDOW = 9
 
-  def doPrintlnGenerations(patternName: String,
-                           friendlyName: String = "Pattern",
-                           slidingWindow: Int = SLIDINGWINDOW) {
-   // Consume the generations from a stream into 
-    val gens: GenerationSeq = 
-      getLifeStream(patternName).take(slidingWindow).toSeq.par
-    val boundery = boundingBox(gens.flatten.toSet.par)
+  def doPrintGenerations(patternName: String,
+                         friendlyName: String = "Pattern",
+                         slidingWindow: Int = SLIDINGWINDOW) {
+    println(s"Sliding window = $slidingWindow")
+
+    // Consume the generations
+    val gens: GenerationSeq =
+      getLimitedLifeSeq(patternName, slidingWindow).par.reverse
+
     // Widen by surroundings
-    val frame = ((boundery._1.x - 1, boundery._1.y - 1), (boundery._2.x + 1, boundery._2.y + 1))
+    val frame = {
+      val boundery = boundingBox(gens.flatten.toSet.par);
+      ((boundery._1.x - 1, boundery._1.y - 1),
+        (boundery._2.x + 1, boundery._2.y + 1))
+    }
     var genCounter = -1
 
     def doGenerations(gens: GenerationSeq) {
@@ -50,7 +59,7 @@ object ConwayCliDemo {
             // Begin recursive toRowHelper
             if (actual != collection.parallel.ParSeq())
               toRowHelper(actual.head, actual.tail,
-                  acc ++ ParSeq((if (y > frame._2.y) s"Gen ${genCounter += 1; genCounter}".
+                acc ++ ParSeq((if (y > frame._2.y) s"Gen ${genCounter += 1; genCounter}".
                   padTo(frame._2.x - frame._1.x + 1, " ").mkString // Top line prints gen number
                 else (for (x ← frame._1.x to frame._2.x) // Per dish from left to right X
                   yield toChar((x, y))).mkString)))
@@ -72,8 +81,8 @@ object ConwayCliDemo {
   } // doPrintlnGenerations(…
 
   def main(args: Array[String]): Unit = {
-    doPrintlnGenerations(blinker, "Blinker pattern")
-    doPrintlnGenerations(glider, "Glider pattern")
-    doPrintlnGenerations(eight, "Eigth pattern")
+    doPrintGenerations(blinker, "Blinker pattern")
+    doPrintGenerations(glider, "Glider pattern")
+    //doPrintlnGenerations(eight, "Eigth pattern")
   } // def main
 }

@@ -2,15 +2,13 @@ package org.rosettacode
 package pargolfp
 
 import language.implicitConversions
-/**
- * The object contains a collection of Conway patterns
+/** The object contains a collection of Conway patterns
  *
- * The patterns are stored in string, which can implicitly converted to a Set[XYpos]
+ *  The patterns are stored in string, which can implicitly converted to a Set[XYpos]
  */
 object ConwayPatterns {
 
-  /**
-   * Represents the available Conway patterns in a data-structure
+  /** Represents the available Conway patterns in a data-structure
    */
   def patternCollection =
     Map("S&til Lives" ->
@@ -157,7 +155,6 @@ object ConwayPatterns {
   // Helper methods
   // Enable constructing sets of coordinates from string patterns.
   /**
-   *
    */
   implicit def generationFromPattern(pattern: String) = (for {
     (tupleCharCommaXCharPos, lineNumber) ← pattern.stripMargin.lines.map(
