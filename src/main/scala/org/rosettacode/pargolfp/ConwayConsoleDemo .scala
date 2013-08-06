@@ -83,6 +83,7 @@ object ConwayConsoleDemo {
   def main(args: Array[String]): Unit = {
     doPrintGenerations(blinker, "Blinker pattern")
     doPrintGenerations(glider, "Glider pattern")
+    doPrintGenerations(diehard,"Met" )
     //doPrintlnGenerations(eight, "Eigth pattern")
   } // def main
 }

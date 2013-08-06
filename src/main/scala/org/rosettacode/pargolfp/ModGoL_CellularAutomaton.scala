@@ -73,7 +73,7 @@ object CellularAutomaton {
       def inner(pops: GenerationSeq): GenerationSeq = {
         val nextGen = tick(pops.head) +: pops.take(2 * WindowSize - 1)
         // Add last generation in the stream and check for end condition.
-        if (pops.isEmpty ||
+        if (nextGen.head.isEmpty ||
           moveTo(nextGen.head) == reference ||
           callback(nextGen, 0, 0)) nextGen
         else if (isStablePopulation(nextGen, WindowSize)) nextGen.drop(nextGen.length - WindowSize)
