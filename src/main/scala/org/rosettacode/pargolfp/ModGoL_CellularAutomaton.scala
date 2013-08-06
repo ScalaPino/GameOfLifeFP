@@ -80,7 +80,8 @@ object CellularAutomaton {
         else inner(nextGen)
       }
       // Begin of getLifeStream
-      inner(collection.parallel.ParSeq(seed))
+      val nextGen = inner(collection.parallel.ParSeq(seed)).par.reverse
+      nextGen.drop((nextGen.length - WindowSize) max 0)
     } // def getLifeStream(…
 
   /** Determine the envelope of all cells in a generation*/
@@ -89,8 +90,8 @@ object CellularAutomaton {
       throw new UnsupportedOperationException("empty.boundingBox")
     // Aggregate each XYpos to maximum extreme
     //TODO: Check use of method TrieMap.aggregate
-    gen.foldLeft(gen.head extreme gen.head)(
-      (resultingRect, currentPos) ⇒ (currentPos extreme resultingRect))
+    gen.foldLeft(gen.head extreme(gen.head))(
+      (resultingRect, currentPos) => (currentPos extreme resultingRect))
   }
 
   /** Moves the pattern without altering its disposition

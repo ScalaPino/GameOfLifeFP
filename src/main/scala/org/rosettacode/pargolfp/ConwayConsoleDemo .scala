@@ -32,7 +32,7 @@ object ConwayConsoleDemo {
 
     // Consume the generations
     val gens: GenerationSeq =
-      getLimitedLifeSeq(patternName, slidingWindow).par.reverse
+      getLimitedLifeSeq(patternName, slidingWindow)
 
     // Widen by surroundings
     val frame = {
@@ -49,10 +49,10 @@ object ConwayConsoleDemo {
           {
             def toChar(point: Tuple2[Int, Int]) = {
               (previous(point), actual.head(point)) match {
-                case (false, false) ⇒ { '\u2219' } // ∙ Empty
-                case (false, true)  ⇒ { '\u263a' } // ☺ Newborn
-                case (true, false)  ⇒ { '\u2022' } // • Just died
-                case (true, true)   ⇒ { '\u263b' } // ☻ Surviver
+                case (false, false) => { '\u2219' } // ∙ Empty
+                case (false, true)  => { '\u263a' } // ☺ Newborn
+                case (true, false)  => { '\u2022' } // • Just died
+                case (true, true)   => { '\u263b' } // ☻ Surviver
               }
             } // def toChar(…
 

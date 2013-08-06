@@ -32,7 +32,7 @@ class XYpos(val x: Int,
    *  Filled with all the 8 XYpos as coordinates around the cell
    */
   private lazy val mooreNeighborhoodPos =
-    mooreNeighborhood.map(p ⇒ this plus (p._1, p._2)) // Avoid implicit conversion
+    mooreNeighborhood.map(p => this plus (p._1, p._2)) // Avoid implicit conversion
 
   /** All stored neighbor positions of a cell expressed as a set of XYpos.
    *  It must be lazy -computed on demand- to postpone evaluation
