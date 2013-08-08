@@ -1,4 +1,3 @@
-
 /*  _____       _               ____________	*\
 ** |  __ \     | |              |  ___| ___ \	**
 ** | |  \/ ___ | |      ______  | |_  | |_/ /	**
@@ -14,7 +13,7 @@ import annotation.tailrec
 /** The basic virtual game. This object contains the functions with living
  *  cells. The case of combined XYpos: CellsAlive.
  *
- *  @version		0.3 2013-08-01
+ *  @version		0.4 2013-08-01
  *
  *  @author		Frans W. van den Berg
  */
@@ -23,7 +22,7 @@ object CellularAutomaton {
 
   /** Detects a stabilization of the number of living cells */
   def isStablePopulation(pops: GenerationSeq, window: Int): Boolean =
-    pops.size >= 2 * window && pops.slice(window, 2 * window).forall(_.size == pops.head.size)
+    pops.size >= 2 * window && pops.slice(window, 2 * window).forall(_._1.size == pops.head._1.size)
 
   /** This is the Game of Live engine
    *
@@ -40,7 +39,7 @@ object CellularAutomaton {
      *  are alive, together with the ''number'' of XYpos it is neighbor of.
      */
     val neighbors =
-      (population.toList.flatMap(_.getMooreNeighborhood)).par.groupBy(identity).map {
+      (population._1.toList.flatMap(_.getMooreNeighborhood)).par.groupBy(identity).map {
         case (cell, coll) => (cell, coll.size)
       }
     // Filter all neighbors for desired characteristics
@@ -49,12 +48,12 @@ object CellularAutomaton {
     def newBorn = neighbors.filter(fFilter => rulestringB contains fFilter._2).
       keySet
     // Criterion of Survivors rulestring 
-    def survivors = population.filter(sieve => rulestringS contains neighbors.
+    def survivors = population._1.filter(sieve => rulestringS contains neighbors.
       getOrElse(sieve, 0))
-    return survivors ++ newBorn
+    return (survivors ++ newBorn, population._2 + 1L)
   } // def tick(…
 
-  def dummy(dish: GenerationSeq, a: Int, b: Int) = false
+  def dummy(dish: GenerationSeq, a: Long, b: Long) = false
 
   /** Generate a stream of PetriDishes, each is a successor of the previous.
    *  Appending is stopped if within the sliding windows the same configuration
@@ -66,17 +65,18 @@ object CellularAutomaton {
    */
   def getLimitedLifeSeq(seed: PetriDish,
                         WindowSize: Int,
-                        callback: (GenerationSeq, Int, Int) => Boolean = dummy): GenerationSeq =
+                        callback: (GenerationSeq, Long, Long) => Boolean = dummy): GenerationSeq =
     {
-      val reference = moveTo(seed)
+      val reference = moveTo(seed)._1
       @tailrec
       def inner(pops: GenerationSeq): GenerationSeq = {
         val nextGen = tick(pops.head) +: pops.take(2 * WindowSize - 1)
         // Add last generation in the stream and check for end condition.
-        if (nextGen.head.isEmpty ||
-          moveTo(nextGen.head) == reference ||
+        if (nextGen.head._1.isEmpty ||
+          moveTo(nextGen.head)._1 == reference ||
           callback(nextGen, 0, 0)) nextGen
-        else if (isStablePopulation(nextGen, WindowSize)) nextGen.drop(nextGen.length - WindowSize)
+        else if (isStablePopulation(nextGen, WindowSize))
+          nextGen.drop(nextGen.length - 1)
         else inner(nextGen)
       }
       // Begin of getLifeStream
@@ -86,11 +86,11 @@ object CellularAutomaton {
 
   /** Determine the envelope of all cells in a generation*/
   def boundingBox(gen: PetriDish): Rect = {
-    if (gen.isEmpty)
+    if (gen._1.isEmpty)
       throw new UnsupportedOperationException("empty.boundingBox")
     // Aggregate each XYpos to maximum extreme
     //TODO: Check use of method TrieMap.aggregate
-    gen.foldLeft(gen.head extreme(gen.head))(
+    gen._1.foldLeft(gen._1.head extreme (gen._1.head))(
       (resultingRect, currentPos) => (currentPos extreme resultingRect))
   }
 
@@ -101,7 +101,7 @@ object CellularAutomaton {
     val offset = XYpos(
       extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,
       extremes._1.y + (extremes._2.y - extremes._1.y) / 2 - center.y)
-    gen.map(_ - offset)
+    (gen._1.map(_ - offset), gen._2)
   } // def moveTo(…
 
   /** Remove unused XYpos from the cache while keeping given generations.*/

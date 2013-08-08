@@ -1,3 +1,10 @@
+/*  _____       _               ____________	*\
+** |  __ \     | |              |  ___| ___ \	**
+** | |  \/ ___ | |      ______  | |_  | |_/ /	**
+** | | __ / _ \| |     |______| |  _| |  __/	**
+** | |_\ \ (_) | |____          | |   | |		**
+\*  \____/\___/\_____/          \_|   \_|		*/
+
 package org.rosettacode
 package pargolfp
 
@@ -23,8 +30,8 @@ import language.implicitConversions
  *  @param		timestamp	Params
  *
  */
-class XYpos(val x: Int,
-            val y: Int,
+class XYpos(val x: Long,
+            val y: Long,
             var timestamp: Int = XYpos.generation) {
   import XYpos.{ generation, mooreNeighborhood }
 
@@ -45,7 +52,7 @@ class XYpos(val x: Int,
   }
 
   // XYpos can be used as an offset
-  private def plus(dx: Int, dy: Int) = XYpos(x + dx, y + dy)
+  private def plus(dx: Long, dy: Long) = XYpos(x + dx, y + dy)
 
   /** Add a XYpos as an offset */
   def +(that: XYpos): XYpos = this plus (that.x, that.y)
@@ -94,12 +101,12 @@ object XYpos {
    *  It makes equality and groupBy (identity) possible.
    *  Least Recently Used policy can be used on this cache.
    */
-  val cache = collection.concurrent.TrieMap((0, 0) -> new XYpos(0, 0))
+  val cache = collection.concurrent.TrieMap((0L, 0L) -> new XYpos(0, 0))
 
   /** The XYpos factory which checks if the new XYpos already exists.
    *  By means of the default method of the HashMap
    */
-  def apply(x: Int, y: Int): XYpos =
+  def apply(x: Long, y: Long): XYpos =
     { cache.getOrElseUpdate((x, y), new XYpos(x, y)) }
 
   /**A Tuple2[Int, Int] can be used as a XYpos through this implicit conversion.*/

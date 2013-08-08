@@ -1,8 +1,15 @@
+/*  _____       _               ____________	*\
+** |  __ \     | |              |  ___| ___ \	**
+** | |  \/ ___ | |      ______  | |_  | |_/ /	**
+** | | __ / _ \| |     |______| |  _| |  __/	**
+** | |_\ \ (_) | |____          | |   | |		**
+\*  \____/\___/\_____/          \_|   \_|		*/
+
 package org.rosettacode
 
 /** Conway's Game of Life, a cellular automaton devised in 1970 by the
  *  British mathematician John Horton Conway, is considered a zero-player game
- *  because its evolution is determined by its initial state, requiring no
+ *  because its evolution is only determined by its initial state, requiring no
  *  further input from humans.
  *
  *  It is the best-known example of a ''cellular automaton''.
@@ -19,13 +26,11 @@ package object pargolfp {
   type Rect = (XYpos, XYpos)
 
   /** Abstract and imaginary habitat for the living cells*/
-  type PetriDish = collection.parallel.ParSet[XYpos]
+  type PetriDish = (collection.parallel.ParSet[XYpos], Long)
 
   /** Sequence of consecutive generations*/
   type GenerationSeq = collection.parallel.ParSeq[PetriDish]
   /** Limitation of maximal number of iterations. 5206 is the maximum number of
    *  generations the Acorn methuselah becomes stable.
    */
-  final val MAX_METHUSELAHS_LIFE = 5206
-  final val SLIDINGWINDOW = 4
 }

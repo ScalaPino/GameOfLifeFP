@@ -1,3 +1,10 @@
+/*  _____       _               ____________	*\
+** |  __ \     | |              |  ___| ___ \	**
+** | |  \/ ___ | |      ______  | |_  | |_/ /	**
+** | | __ / _ \| |     |______| |  _| |  __/	**
+** | |_\ \ (_) | |____          | |   | |		**
+\*  \____/\___/\_____/          \_|   \_|		*/
+
 package org.rosettacode
 package pargolfp
 
@@ -156,10 +163,9 @@ object ConwayPatterns {
   // Enable constructing sets of coordinates from string patterns.
   /**
    */
-  implicit def generationFromPattern(pattern: String) = (for {
-    (tupleCharCommaXCharPos, lineNumber) ← pattern.stripMargin.lines.map(
-      _.zipWithIndex).zipWithIndex
-    (char, xCharPos) ← tupleCharCommaXCharPos if char != ' '
-  } yield XYpos(xCharPos, -lineNumber)).toSet.par
+  implicit def generationFromPattern(pattern: String): PetriDish = ((for {
+    (tupleCharCommaXCharPos, lineNumber) <- pattern.stripMargin.lines.map(_.zipWithIndex).zipWithIndex
+    (char, xCharPos) <- tupleCharCommaXCharPos if char != ' '
+  } yield XYpos(xCharPos, -lineNumber)).toSet.par, 0L)
 } // object ConwayPatterns
 
