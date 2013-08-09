@@ -1,4 +1,4 @@
-GameOfLiveFP
+GameOfLifeFP
 ============
 
 Conway's Game of Life - Functional Programmed in Scala 
