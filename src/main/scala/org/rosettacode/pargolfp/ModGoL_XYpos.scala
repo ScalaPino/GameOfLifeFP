@@ -46,7 +46,7 @@ class XYpos(val x: Long,
    *  because in this function there are 8 new instances of XYpos generated.
    *  Direct evaluation should cause a recursive problem.
    */
-  def getMooreNeighborhood = {
+  private  def getMooreNeighborhood = {
     timestamp = generation // Update timestamp each time XYpos is referred.
     mooreNeighborhoodPos
   }

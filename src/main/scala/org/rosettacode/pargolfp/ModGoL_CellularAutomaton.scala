@@ -21,7 +21,7 @@ object CellularAutomaton {
   import XYpos.generation
 
   /** Detects a stabilization of the number of living cells */
-  def isStablePopulation(pops: GenerationSeq, window: Int): Boolean =
+ private def isStablePopulation(pops: GenerationSeq, window: Int): Boolean =
     pops.size >= 2 * window && pops.slice(window, 2 * window).forall(_._1.size == pops.head._1.size)
 
   /** This is the Game of Live engine
@@ -29,7 +29,7 @@ object CellularAutomaton {
    *  The next generation is composed of newborns from fecund
    *  neighborhoods and adults on stable neighborhoods.
    */
-  def tick(population: PetriDish,
+  private def tick(population: PetriDish,
            rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
            rulestringS: Set[Int] = Set(2, 3)): PetriDish = {
     assume(generation != Int.MaxValue, "Generations outnumbered")
@@ -45,15 +45,14 @@ object CellularAutomaton {
     // Filter all neighbors for desired characteristics
 
     // Criterion of rulestring Birth
-    def newBorn = neighbors.filter(fFilter => rulestringB contains fFilter._2).
-      keySet
+    def newBorn = neighbors.filter(fFilter => rulestringB contains fFilter._2).keySet
     // Criterion of Survivors rulestring 
-    def survivors = population._1.filter(sieve => rulestringS contains neighbors.
-      getOrElse(sieve, 0))
+    def survivors = population._1.filter(sieve => rulestringS contains neighbors.getOrElse(sieve, 0))
+    
     return (survivors ++ newBorn, population._2 + 1L)
   } // def tick(…
 
-  def dummy(dish: GenerationSeq, a: Long, b: Long) = false
+  private def dummy(dish: GenerationSeq, a: Long, b: Long) = false
 
   /** Generate a stream of PetriDishes, each is a successor of the previous.
    *  Appending is stopped if within the sliding windows the same configuration
@@ -74,7 +73,7 @@ object CellularAutomaton {
         // Add last generation in the stream and check for end condition.
         if (nextGen.head._1.isEmpty ||
           moveTo(nextGen.head)._1 == reference ||
-          callback(nextGen, 0, 0)) nextGen
+          callback(nextGen, nextGen.head._2, 0)) nextGen
         else if (isStablePopulation(nextGen, WindowSize))
           nextGen.drop(nextGen.length - 1)
         else inner(nextGen)
@@ -96,7 +95,7 @@ object CellularAutomaton {
 
   /** Moves the pattern without altering its disposition
    */
-  def moveTo(gen: PetriDish, center: XYpos = (0, 0)): PetriDish = {
+  private def moveTo(gen: PetriDish, center: XYpos = (0, 0)): PetriDish = {
     val extremes = boundingBox(gen)
     val offset = XYpos(
       extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,

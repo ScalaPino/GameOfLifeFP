@@ -28,7 +28,7 @@ object ConwayConsoleDemo {
   final val SLIDINGWINDOW = 9
   final val DummyLong = -1L
 
-  def doPrintGenerations(patternName: String,
+  private def doPrintGenerations(patternName: String,
                          friendlyName: String = "Pattern",
                          slidingWindow: Int = SLIDINGWINDOW) {
 
@@ -87,7 +87,7 @@ object ConwayConsoleDemo {
     val elapsedTime = (endTime - startTime) * 1.e-6
 
     println(s"${gens.last._2} gen's $friendlyName, stabilized with ${gens.last._1.size} cells." +
-      s" Elapsed time = ${elapsedTime} msec")
+      f" Elapsed time = $elapsedTime%.6f msec")
 
   } // doPrintlnGenerations(…
 
@@ -104,6 +104,6 @@ object ConwayConsoleDemo {
 
     val endTime = System.nanoTime()
     val elapsedTime = (endTime - startTime) * 1.e-6
-    println(s"Total elapsed time $elapsedTime msec.")
+    println(f"Total elapsed time $elapsedTime%.3f msec.")
   } // def main
 }
