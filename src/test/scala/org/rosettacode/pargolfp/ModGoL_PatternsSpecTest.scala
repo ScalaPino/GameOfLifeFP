@@ -10,7 +10,6 @@ import CellularAutomaton.{
 import ConwayPatterns._
 
 import annotation.tailrec
-import collection.parallel.{ ParSeq, ParSet }
 import language.postfixOps
 import org.scalatest._
 
@@ -79,7 +78,7 @@ object ModGoL_PatternsSpecTest {
                    expectedPopLeft: Int) = {
     val slidingWindowSize = 4
     @tailrec
-    def inner(pops: ParSeq[PetriDish], expPerCountDown: Int): Boolean = {
+    def inner(pops: GenerationSeq, expPerCountDown: Int): Boolean = {
       val newPops = nextGenWithHistory(pops, slidingWindowSize)
       // The termination condition, either lifespan count
       // or no change in the number of living cells.
