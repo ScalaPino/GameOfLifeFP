@@ -17,11 +17,11 @@ import annotation.tailrec
  *
  *  @author		Frans W. van den Berg
  */
-object CellularAutomaton {
+trait CellularAutomaton {
   import XYpos.generation
 
   /** Detects a stabilization of the number of living cells */
- private def isStablePopulation(pops: GenerationSeq, window: Int): Boolean =
+  private def isStablePopulation(pops: GenerationSeq, window: Int): Boolean =
     pops.size >= 2 * window && pops.slice(window, 2 * window).forall(_._1.size == pops.head._1.size)
 
   /** This is the Game of Live engine
@@ -30,8 +30,8 @@ object CellularAutomaton {
    *  neighborhoods and adults on stable neighborhoods.
    */
   private def tick(population: PetriDish,
-           rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
-           rulestringS: Set[Int] = Set(2, 3)): PetriDish = {
+                   rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
+                   rulestringS: Set[Int] = Set(2, 3)): PetriDish = {
     assume(generation != Int.MaxValue, "Generations outnumbered")
     generation += 1
 
@@ -48,11 +48,13 @@ object CellularAutomaton {
     def newBorn = neighbors.filter(fFilter => rulestringB contains fFilter._2).keySet
     // Criterion of Survivors rulestring 
     def survivors = population._1.filter(sieve => rulestringS contains neighbors.getOrElse(sieve, 0))
-    
+
     return (survivors ++ newBorn, population._2 + 1L)
   } // def tick(…
 
   private def dummy(dish: GenerationSeq, a: Long, b: Long) = false
+
+  def slindingWindowSize: Int
 
   /** Generate a stream of PetriDishes, each is a successor of the previous.
    *  Appending is stopped if within the sliding windows the same configuration
@@ -63,24 +65,23 @@ object CellularAutomaton {
    *  @return	The serial sequence of generations in time.
    */
   def getLimitedLifeSeq(seed: PetriDish,
-                        WindowSize: Int,
                         callback: (GenerationSeq, Long, Long) => Boolean = dummy): GenerationSeq =
     {
       val reference = moveTo(seed)._1
       @tailrec
       def inner(pops: GenerationSeq): GenerationSeq = {
-        val nextGen = tick(pops.head) +: pops.take(2 * WindowSize - 1)
+        val nextGen = tick(pops.head) +: pops.take(2 * slindingWindowSize - 1)
         // Add last generation in the stream and check for end condition.
         if (nextGen.head._1.isEmpty ||
           moveTo(nextGen.head)._1 == reference ||
           callback(nextGen, nextGen.head._2, 0)) nextGen
-        else if (isStablePopulation(nextGen, WindowSize))
+        else if (isStablePopulation(nextGen, slindingWindowSize))
           nextGen.drop(nextGen.length - 1)
         else inner(nextGen)
       }
       // Begin of getLifeStream
       val nextGen = inner(collection.parallel.ParSeq(seed)).par.reverse
-      nextGen.drop((nextGen.length - WindowSize) max 0)
+      nextGen.drop((nextGen.length - slindingWindowSize) max 0)
     } // def getLifeStream(…
 
   /** Determine the envelope of all cells in a generation*/
@@ -113,4 +114,4 @@ object CellularAutomaton {
   }
 } // object CellularAutomaton
 
-//############################################################################
+// ############################################################################

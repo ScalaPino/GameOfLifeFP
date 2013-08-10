@@ -169,3 +169,5 @@ object ConwayPatterns {
   } yield XYpos(xCharPos, -lineNumber)).toSet.par, 0L)
 } // object ConwayPatterns
 
+// ############################################################################
+

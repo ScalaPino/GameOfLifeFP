@@ -11,7 +11,6 @@ package pargolfp
 import annotation.tailrec
 import java.awt.Point
 
-import CellularAutomaton.{ boundingBox, getLimitedLifeSeq }
 import collection.parallel.{ ParSeq, ParSet }
 import ConwayPatterns._
 import XYpos.tupleToXYpos
@@ -23,17 +22,16 @@ import XYpos.tupleToXYpos
  *  The "main" object for demonstration purpose.
  *  It get its set of
  */
-object ConwayConsoleDemo {
-  /** Overrides the global constant */
-  final val SLIDINGWINDOW = 9
-  final val DummyLong = -1L
+object ConwayConsoleDemo extends CellularAutomaton {
+  val slindingWindowSize = 9
+
+  private final val DummyLong = -1L
 
   private def doPrintGenerations(patternName: String,
-                         friendlyName: String = "Pattern",
-                         slidingWindow: Int = SLIDINGWINDOW) {
-
+                                 friendlyName: String = "Pattern") {
     // Consume the generations
-    val gens: GenerationSeq = getLimitedLifeSeq(patternName, slidingWindow)
+    val (startTime: Long, gens, endTime) =
+      { (System.nanoTime(), getLimitedLifeSeq(patternName), System.nanoTime()) }
 
     // Widen by surroundings
     val frame64: (XYpos, XYpos) = {
@@ -44,7 +42,7 @@ object ConwayConsoleDemo {
     val frame32 = (new Point(frame64._1.x.toInt, frame64._1.y.toInt),
       new Point(frame64._2.x.toInt, frame64._2.y.toInt))
 
-    def doGenerations(gens: GenerationSeq) {
+    def generationsToUTF(gens: GenerationSeq): Long = {
       def toRow(y: Int): String = {
         @tailrec
         def toRowHelper(previous: PetriDish, actual: GenerationSeq, acc: Seq[String]): Seq[String] =
@@ -77,33 +75,31 @@ object ConwayConsoleDemo {
       if ((frame64._2.x - frame64._1.x) <= 20)
         for (y <- frame32._2.y + 1 to frame32._1.y by -1) println(toRow(y))
       else println("Resulting grid too wide.")
+      gens.last._2
     } // def doGenerations(…
 
-    // Begin doPrintlnGenerations(…
+    // Begin doPrintGenerations(…
     println(s"\nCompute ${friendlyName} generations started")
-    val startTime = System.nanoTime()
-    doGenerations(gens)
-    val endTime = System.nanoTime()
-    val elapsedTime = (endTime - startTime) * 1.e-6
 
-    println(s"${gens.last._2} gen's $friendlyName, stabilized with ${gens.last._1.size} cells." +
-      f" Elapsed time = $elapsedTime%.6f msec")
+    val nGens = generationsToUTF(gens)
+val elapsedTime = (endTime - startTime)* 1.e-9
+    println(s"$nGens generations $friendlyName, stabilized with ${gens.last._1.size} cells." +
+      f" Elapsed time = ${elapsedTime }%.6f sec ~ ${nGens/elapsedTime}%.3f f/s")
 
-  } // doPrintlnGenerations(…
+  } // doPrintGenerations(…
 
   def main(args: Array[String]): Unit = {
     println(s"Legend: ∙ Empty  ☺ New born  ☻ Surviver  • Just died")
 
     val startTime = System.nanoTime()
-
     doPrintGenerations(blinker, "Blinker pattern")
     doPrintGenerations(glider, "Glider pattern")
     doPrintGenerations(eight, "Eigth pattern")
     doPrintGenerations(diehard, "Diehard")
     doPrintGenerations(acorn, "Acorn")
 
-    val endTime = System.nanoTime()
-    val elapsedTime = (endTime - startTime) * 1.e-6
-    println(f"Total elapsed time $elapsedTime%.3f msec.")
+    println(f"Total elapsed time ${(System.nanoTime() - startTime) * 1.e-6}%.3f msec.")
   } // def main
 }
+
+// ############################################################################

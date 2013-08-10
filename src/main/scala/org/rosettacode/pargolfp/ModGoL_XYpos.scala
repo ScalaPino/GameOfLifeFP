@@ -46,7 +46,7 @@ class XYpos(val x: Long,
    *  because in this function there are 8 new instances of XYpos generated.
    *  Direct evaluation should cause a recursive problem.
    */
-  private  def getMooreNeighborhood = {
+  def getMooreNeighborhood = {
     timestamp = generation // Update timestamp each time XYpos is referred.
     mooreNeighborhoodPos
   }
@@ -88,7 +88,7 @@ class XYpos(val x: Long,
  */
 object XYpos {
 
-  var generation = Int.MinValue
+  @volatile var generation = Int.MinValue
 
   // Init the static variables
   private def offsets = (-1 to 1).seq // For neighbor selection
@@ -112,3 +112,5 @@ object XYpos {
   /**A Tuple2[Int, Int] can be used as a XYpos through this implicit conversion.*/
   implicit def tupleToXYpos(tup: (Int, Int)): XYpos = apply(tup._1, tup._2)
 } // object XYpos
+
+// ############################################################################
