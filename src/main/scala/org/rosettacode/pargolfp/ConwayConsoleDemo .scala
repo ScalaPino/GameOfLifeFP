@@ -23,7 +23,7 @@ import XYpos.tupleToXYpos
  *  It get its set of
  */
 object ConwayConsoleDemo extends CellularAutomaton {
-  val slindingWindowSize = 9
+  val slindingWindowSize = 9 // Displays max 8 generations
 
   private final val DummyLong = -1L
 
@@ -98,7 +98,7 @@ val elapsedTime = (endTime - startTime)* 1.e-9
     doPrintGenerations(diehard, "Diehard")
     doPrintGenerations(acorn, "Acorn")
 
-    println(f"Total elapsed time ${(System.nanoTime() - startTime) * 1.e-6}%.3f msec.")
+    println(f"Total elapsed time ${(System.nanoTime() - startTime) * 1.e-9}%.3f sec.")
   } // def main
 }
 
