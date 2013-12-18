@@ -13,9 +13,8 @@ import java.awt.Point
 
 import collection.parallel.{ ParSeq, ParSet }
 import ConwayPatterns._
-import XYpos.tupleToXYpos
 
-/** @version		0.4 2013-08-01
+/** @version		0.6 2013-08-01
  *
  *  @author		Frans W. van den Berg
  *
@@ -29,9 +28,14 @@ object ConwayConsoleDemo extends CellularAutomaton {
 
   private def doPrintGenerations(patternName: String,
                                  friendlyName: String = "Pattern") {
-    // Consume the generations
+    // Compute the limited life generations
     val (startTime: Long, gens, endTime) =
-      { (System.nanoTime(), getLimitedLifeSeq(patternName), System.nanoTime()) }
+      {
+        val cons: Constellation = patternName
+        (System.nanoTime(),
+          getLimitedLifeSeq(cons, slindingWindowSize, cons), // return the subsequent generations
+          System.nanoTime())
+      }
 
     // Widen by surroundings
     val frame64: (XYpos, XYpos) = {
@@ -45,7 +49,7 @@ object ConwayConsoleDemo extends CellularAutomaton {
     def generationsToUTF(gens: GenerationSeq): Long = {
       def toRow(y: Int): String = {
         @tailrec
-        def toRowHelper(previous: PetriDish, actual: GenerationSeq, acc: Seq[String]): Seq[String] =
+        def toRowHelper(previous: Constellation, actual: GenerationSeq, acc: Seq[String]): Seq[String] =
           {
             def toChar(point: Tuple2[Int, Int]) = {
               (previous._1(point), actual.head._1(point)) match {
@@ -60,7 +64,7 @@ object ConwayConsoleDemo extends CellularAutomaton {
             if (actual != collection.parallel.ParSeq())
               toRowHelper(actual.head,
                 actual.tail,
-                acc ++ ParSeq((if (y > frame32._2.y) s"Gen ${actual.head._2}".
+                acc ++ ParSeq((if (y > frame32._2.y) f"Gen${actual.head._2}%2d".
                   padTo(frame32._2.x - frame32._1.x + 1, " ").mkString // Top line prints gen number
                 else (for (x <- frame32._1.x to frame32._2.x) // Per dish from left to right X
                   yield toChar((x, y))).mkString)))
@@ -71,22 +75,21 @@ object ConwayConsoleDemo extends CellularAutomaton {
         toRowHelper((ParSet(), DummyLong), gens, Seq()).mkString(" ")
       } // def toRow(…
 
-      // Begin doGenerations(…
+      // Begin generationsToUTF(…
       if ((frame64._2.x - frame64._1.x) <= 20)
         for (y <- frame32._2.y + 1 to frame32._1.y by -1) println(toRow(y))
       else println("Resulting grid too wide.")
-      gens.last._2
-    } // def doGenerations(…
+      gens.last._2 // Return # of generations
+    } // def generationsToUTF(…
 
     // Begin doPrintGenerations(…
     println(s"\nCompute ${friendlyName} generations started")
 
     val nGens = generationsToUTF(gens)
-val elapsedTime = (endTime - startTime)* 1.e-9
+    val elapsedTime = (endTime - startTime) * 1.0e-9
     println(s"$nGens generations $friendlyName, stabilized with ${gens.last._1.size} cells." +
-      f" Elapsed time = ${elapsedTime }%.6f sec ~ ${nGens/elapsedTime}%.3f f/s")
-
-  } // doPrintGenerations(…
+      f" Elapsed time = ${elapsedTime}%.6f sec ~ ${nGens / elapsedTime}%.3f f/s")
+  } // generationsToUTF(…
 
   def main(args: Array[String]): Unit = {
     println(s"Legend: ∙ Empty  ☺ New born  ☻ Surviver  • Just died")
@@ -98,7 +101,7 @@ val elapsedTime = (endTime - startTime)* 1.e-9
     doPrintGenerations(diehard, "Diehard")
     doPrintGenerations(acorn, "Acorn")
 
-    println(f"Total elapsed time ${(System.nanoTime() - startTime) * 1.e-9}%.3f sec.")
+    println(f"Total elapsed time ${(System.nanoTime() - startTime) * 1.0e-9}%.3f sec.")
   } // def main
 }
 

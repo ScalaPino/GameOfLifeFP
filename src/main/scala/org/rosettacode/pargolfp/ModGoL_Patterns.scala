@@ -163,10 +163,13 @@ object ConwayPatterns {
   // Enable constructing sets of coordinates from string patterns.
   /**
    */
-  implicit def generationFromPattern(pattern: String): PetriDish = ((for {
-    (tupleCharCommaXCharPos, lineNumber) <- pattern.stripMargin.lines.map(_.zipWithIndex).zipWithIndex
-    (char, xCharPos) <- tupleCharCommaXCharPos if char != ' '
-  } yield XYpos(xCharPos, -lineNumber)).toSet.par, 0L)
+  implicit def constellationFromPattern(pattern: String): Constellation =
+    (
+      (for {
+        (tupleCharCommaXCharPos, lineNumber) <- pattern.stripMargin.lines.map(_.zipWithIndex).zipWithIndex
+        (char, xCharPos) <- tupleCharCommaXCharPos
+        if char != ' '
+      } yield XYpos(xCharPos, -lineNumber)).toSet.par, 0L)
 } // object ConwayPatterns
 
 // ############################################################################

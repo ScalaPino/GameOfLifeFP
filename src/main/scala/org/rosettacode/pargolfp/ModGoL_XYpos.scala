@@ -9,10 +9,11 @@ package org.rosettacode
 package pargolfp
 
 import language.implicitConversions
+
 /** Atomic virtual position contains its own x,y coordinate and neighbors positions.
  *  If included in the Lives set its "alive".
  *
- *  @version		0.3 2013-08-01
+ *  @version		0.6 2013-08-01
  *
  *  @author		Frans W. van den Berg
  *
@@ -87,14 +88,13 @@ class XYpos(val x: Long,
  *
  */
 object XYpos {
-
+  // A generation counter for timestamping
   @volatile var generation = Int.MinValue
 
-  // Init the static variables
-  private def offsets = (-1 to 1).seq // For neighbor selection
-  private val mooreNeighborhood = (for {
-    dx ← offsets; dy ← offsets; if dx != 0 || dy != 0
-  } yield (dx, dy))
+  // Initialization of the static variables
+  private val offsets = (-1 to 1) // For neighbor selection
+  private lazy val mooreNeighborhood = // Create x,y points without 0,0
+    ( offsets flatMap { x => offsets map (y => (x, y)) }).filter(p => (p._1 | p._2) != 0)
 
   /** The cache will check if the new XYpos already exists.
    *  If not create a new one with the default method.
