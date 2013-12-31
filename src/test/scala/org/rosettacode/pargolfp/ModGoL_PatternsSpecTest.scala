@@ -1,19 +1,13 @@
 package org.rosettacode
 package pargolfp
 
-import CellularAutomaton.{
-  //  PetriDish,
-  isStablePopulation,
-  moveTo,
-  nextGenWithHistory
-}
 import ConwayPatterns._
 
 import annotation.tailrec
 import language.postfixOps
 import org.scalatest._
 
-class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen {
+class ModGoL_PatternsSpecTest extends FunSpec with GivenWhenThen with CellularAutomaton{
   import ModGoL_PatternsSpecTest._
 
   XYpos.cache.clear

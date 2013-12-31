@@ -31,7 +31,7 @@ object ConwayConsoleDemo extends CellularAutomaton {
     // Compute the limited life generations
     val (startTime: Long, gens, endTime) =
       {
-        val cons: Constellation = patternName
+        val cons: LivingWorld = patternName
         (System.nanoTime(),
           getLimitedLifeSeq(cons, slindingWindowSize, cons), // return the subsequent generations
           System.nanoTime())
@@ -46,10 +46,12 @@ object ConwayConsoleDemo extends CellularAutomaton {
     val frame32 = (new Point(frame64._1.x.toInt, frame64._1.y.toInt),
       new Point(frame64._2.x.toInt, frame64._2.y.toInt))
 
+    /** Print a history of generations to UTF-8 strings
+     */
     def generationsToUTF(gens: GenerationSeq): Long = {
       def toRow(y: Int): String = {
         @tailrec
-        def toRowHelper(previous: Constellation, actual: GenerationSeq, acc: Seq[String]): Seq[String] =
+        def toRowHelper(previous: LivingWorld, actual: GenerationSeq, acc: Seq[String]): Seq[String] =
           {
             def toChar(point: Tuple2[Int, Int]) = {
               (previous._1(point), actual.head._1(point)) match {
@@ -89,7 +91,7 @@ object ConwayConsoleDemo extends CellularAutomaton {
     val elapsedTime = (endTime - startTime) * 1.0e-9
     println(s"$nGens generations $friendlyName, stabilized with ${gens.last._1.size} cells." +
       f" Elapsed time = ${elapsedTime}%.6f sec ~ ${nGens / elapsedTime}%.3f f/s")
-  } // generationsToUTF(…
+  } // doPrintGenerations(…
 
   def main(args: Array[String]): Unit = {
     println(s"Legend: ∙ Empty  ☺ New born  ☻ Surviver  • Just died")

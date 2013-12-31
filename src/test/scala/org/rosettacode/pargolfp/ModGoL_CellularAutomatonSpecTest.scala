@@ -2,24 +2,33 @@ package org.rosettacode
 package pargolfp
 
 import org.scalatest._
-import org.scalatest.junit.AssertionsForJUnit
-import collection.parallel.ParSet
 
-class M_GoL_CellularAutomatonSpecTest extends FunSpec with GivenWhenThen {
+import ConwayPatterns._
+
+class M_GoL_CellularAutomatonSpecTest
+    extends FunSpec
+    with GivenWhenThen
+    with CellularAutomaton {
+
   private val (x0, y0) = (3, 25)
   private val (x1, y1) = (x0 + 1, y0)
   private val (x2, y2) = (x1 + 1, y0)
 
   XYpos.cache.clear
 
-  describe("A Cell") {
-    it("has is equality function") {
-      Given(f"a XYpos($x0%d, $y0%d)")
-      var cell = XYpos(x0, y0)
-      Then(f"the must equal with $cell%s")
-      assert(cell === XYpos(x0, y0))
+  describe("A Blinker") {
+    it("must alternate") {
+      Given(f"a horizontal row of 3 lives")
+      Then(f"it must be centered ")
+      val board: LivingWorld = moveTo(blinker)
 
-      And(f"must be not equal with a neighbor at (${x0 - 1}%d, ${y0 + 1}%d)")
+      assert(board._1 === Set(XYpos(-1, 0), XYpos(1, 0), XYpos(0, 0)))
+     
+      And("")
+      println("Boaord" + board._1.flatMap(_.getMooreNeighborhood))
+      println("Boaord" + tick((board._1,0L)))
+
+      /*      And(f"must be not equal with a neighbor at (${x0 - 1}%d, ${y0 + 1}%d)")
       assert((cell != XYpos(x0 - 1, y0 + 1)))
       And("Exercise addition & substraction")
       cell += XYpos(10, 0)
@@ -30,20 +39,20 @@ class M_GoL_CellularAutomatonSpecTest extends FunSpec with GivenWhenThen {
       expectResult(XYpos(x0, y0 + 10)) { cell }
       cell -= XYpos(0, 10)
       expectResult(XYpos(x0, y0)) { cell }
-    }
+    */ }
     it("generate his neighbor Cells") {
-      Given(f"a ${XYpos(x0, y0)}%s")
+      /*Given(f"a ${XYpos(x0, y0)}%s")
       When("the neigtborhood function is use")
       Then("8 Cells around must be generated without the give Cell")
       expectResult((Vector[XYpos]((x0 - 1, y0 - 1), (x0 - 1, y0), (x0 - 1, y0 + 1),
         (x0, y0 - 1), (x0, y0 + 1),
         (x0 + 1, y0 - 1), (x0 + 1, y0), (x0 + 1, y0 + 1)))) { XYpos(x0, y0).getMooreNeighborhood }
-    }
+    */ }
   }
 
   describe("The Cell environment") {
 
-    it("Make a Blinker configuration") {
+    /*    it("Make a Blinker configuration") {
       while (XYpos.cache.size > 0)
         CellularAutomaton.flushCache(0)
 
@@ -69,5 +78,5 @@ class M_GoL_CellularAutomatonSpecTest extends FunSpec with GivenWhenThen {
       CellularAutomaton.flushCache(0)
       expectResult(0) { XYpos.cache.size }
     }
-  }
+  */ }
 }

@@ -29,19 +29,21 @@ trait CellularAutomaton {
    *  The next generation is composed of newborns from fecund
    *  neighborhoods and adults on stable neighborhoods.
    */
-  private def tick(population: Constellation,
+  def tick(population: LivingWorld,
                    rulestringB: Set[Int] = Set(3), // Default to Conway's GoL B3S23
-                   rulestringS: Set[Int] = Set(2, 3)): Constellation = {
+                   rulestringS: Set[Int] = Set(2, 3)): LivingWorld = {
     assume(generation != Int.MaxValue, "Generations outnumbered")
     generation += 1
 
     /** A Map containing only ''coordinates'' that are neighbors of XYpos which
      *  are alive, together with the ''number'' of XYpos it is neighbor of.
      */
-    val neighbors =
-      (population._1.flatMap(_.getMooreNeighborhood)).par.groupBy(identity).map {
+    val neighbors =   
+      (population._1.toList.flatMap(_.getMooreNeighborhood)).par.groupBy(identity).map {
         case (cell, coll) => (cell, coll.size)
       }
+    
+    //println(neighbors)
     // Filter all neighbors for desired characteristics
 
     // Criterion of rulestring Birth
@@ -58,17 +60,20 @@ trait CellularAutomaton {
    *  Appending is stopped if within the sliding windows the same configuration
    *  of living cells reappears.
    *
-   *  @param		seed			The initial living cells configuration.
+   *  @param		orgSeed			The initial living cells configuration.
    *  @param		slidingWindow	The maximal length of returned
    *  @return	The serial sequence of generations in time.
    */
-  def getLimitedLifeSeq(orgSeed: Constellation, slindingWindowSize: Int, seed: Constellation,
+  def getLimitedLifeSeq(orgSeed: LivingWorld,
+                        slindingWindowSize: Int,
+                        seed: LivingWorld,
                         callback: (GenerationSeq, Long, Long) => Boolean = dummy): GenerationSeq =
     {
       val reference = moveTo(orgSeed)._1
+      
       @tailrec
       def inner(pops: GenerationSeq): GenerationSeq = {
-        val nextGen = tick(pops.head) +: pops.take(2 * slindingWindowSize - 1)
+         val nextGen = tick(pops.head) +: pops.take(2 * slindingWindowSize - 1)
         // Add last generation in the stream and check for end condition.
         if (nextGen.head._1.isEmpty ||
           moveTo(nextGen.head)._1 == reference ||
@@ -80,10 +85,10 @@ trait CellularAutomaton {
       // Begin of getLifeStream
       val nextGen = inner(collection.parallel.ParSeq(seed)).par.reverse
       nextGen.drop((nextGen.length - slindingWindowSize) max 0)
-    } // def getLifeStream(…
+    } // def getLimitedLifeSeq(…
 
   /** Determine the envelope of all cells in a generation*/
-  def boundingBox(gen: Constellation): Rect = {
+  def boundingBox(gen: LivingWorld): Rect = {
     if (gen._1.isEmpty)
       throw new UnsupportedOperationException("empty.boundingBox")
     // Aggregate each XYpos to maximum extreme
@@ -94,7 +99,7 @@ trait CellularAutomaton {
 
   /** Moves the pattern without altering its disposition
    */
-  private def moveTo(gen: Constellation, center: XYpos = (0, 0)): Constellation = {
+   protected def moveTo(gen: LivingWorld, center: XYpos = (0, 0)): LivingWorld = {
     val extremes = boundingBox(gen)
     val offset = XYpos(
       extremes._1.x + (extremes._2.x - extremes._1.x) / 2 - center.x,

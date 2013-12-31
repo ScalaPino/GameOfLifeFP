@@ -26,13 +26,10 @@ package object pargolfp {
   type Rect = (XYpos, XYpos)
 
   /** Abstract and imaginary habitat for the living cells*/
-  type Constellation = (collection.parallel.ParSet[XYpos], Long /* Generation counter*/ )
+  type LivingWorld = (collection.parallel.ParSet[XYpos], Long /* Generation counter*/ )
 
   /** Sequence of consecutive generations*/
-  type GenerationSeq = collection.parallel.ParSeq[Constellation]
-  /** Limitation of maximal number of iterations. 5206 is the maximum number of
-   *  generations the Acorn methuselah becomes stable.
-   */
+  type GenerationSeq = collection.parallel.ParSeq[LivingWorld]
 }
 
 // ############################################################################

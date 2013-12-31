@@ -33,6 +33,8 @@ object ConwayPatterns {
         Seq(("Glider", glider, 4, 0),
           ("Lightweight spaceships", lwss, 4, 0)),
       "&Methuselahs" ->
+        // Limitation of maximal number of iterations. 5206 is the maximum number of
+        //  generations when the Acorn methuselah becomes stable.
         Seq(("&Acorn", acorn, 5206, 633),
           ("&Die hard", diehard, 130, 0),
           ("\"&R\" pentomino", rPentomino, 1103, 116)),
@@ -163,7 +165,7 @@ object ConwayPatterns {
   // Enable constructing sets of coordinates from string patterns.
   /**
    */
-  implicit def constellationFromPattern(pattern: String): Constellation =
+  implicit def LivesFromPattern(pattern: String): LivingWorld =
     (
       (for {
         (tupleCharCommaXCharPos, lineNumber) <- pattern.stripMargin.lines.map(_.zipWithIndex).zipWithIndex

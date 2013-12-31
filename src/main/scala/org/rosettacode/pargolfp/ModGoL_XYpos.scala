@@ -41,7 +41,7 @@ class XYpos(val x: Long,
    */
   private lazy val mooreNeighborhoodPos =
     mooreNeighborhood.map(p => this plus (p._1, p._2)) // Avoid implicit conversion
-
+    
   /** All stored neighbor positions of a cell expressed as a set of XYpos.
    *  It must be lazy -computed on demand- to postpone evaluation
    *  because in this function there are 8 new instances of XYpos generated.
@@ -94,7 +94,7 @@ object XYpos {
   // Initialization of the static variables
   private val offsets = (-1 to 1) // For neighbor selection
   private lazy val mooreNeighborhood = // Create x,y points without 0,0
-    ( offsets flatMap { x => offsets map (y => (x, y)) }).filter(p => (p._1 | p._2) != 0)
+    (offsets flatMap { x => offsets map (y => (x, y)) }).filter(p => (p._1 | p._2) != 0)
 
   /** The cache will check if the new XYpos already exists.
    *  If not create a new one with the default method.
