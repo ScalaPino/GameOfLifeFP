@@ -13,7 +13,7 @@ import annotation.tailrec
 /** The basic virtual game. This object contains the functions with living
  *  cells. The case of combined XYpos: CellsAlive.
  *
- *  @version		0.6 2013-08-01
+ *  @version		0.8 2013-12-31
  *
  *  @author		Frans W. van den Berg
  */
